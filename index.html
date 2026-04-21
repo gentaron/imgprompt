@@ -15,6 +15,9 @@
       --text-dim: #8888a0;
       --success: #00d2a0;
       --search-bg: #16161e;
+      --male: #4fc3f7;
+      --female: #f48fb1;
+      --lgbt: #ce93d8;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -76,9 +79,7 @@
       transition: border-color 0.2s;
     }
 
-    .search-box input:focus {
-      border-color: var(--accent);
-    }
+    .search-box input:focus { border-color: var(--accent); }
 
     .search-box svg {
       position: absolute;
@@ -89,6 +90,29 @@
       height: 18px;
       color: var(--text-dim);
     }
+
+    .filter-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .filter-btn {
+      padding: 8px 16px;
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+    .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .filter-btn.active[data-g="MALE"] { background: var(--male); border-color: var(--male); }
+    .filter-btn.active[data-g="FEMALE"] { background: var(--female); border-color: var(--female); }
+    .filter-btn.active[data-g="LGBT"] { background: var(--lgbt); border-color: var(--lgbt); }
 
     .copy-all-btn {
       padding: 12px 24px;
@@ -103,9 +127,7 @@
       white-space: nowrap;
     }
 
-    .copy-all-btn:hover {
-      background: var(--accent-hover);
-    }
+    .copy-all-btn:hover { background: var(--accent-hover); }
 
     .count-info {
       color: var(--text-dim);
@@ -129,14 +151,8 @@
       transition: transform 0.2s, border-color 0.2s;
     }
 
-    .card:hover {
-      transform: translateY(-2px);
-      border-color: var(--accent);
-    }
-
-    .card.hidden {
-      display: none;
-    }
+    .card:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .card.hidden { display: none; }
 
     .card-header {
       padding: 16px 16px 12px;
@@ -145,11 +161,29 @@
       align-items: center;
     }
 
+    .card-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     .card-header h2 {
       font-size: 1.05rem;
       font-weight: 600;
       color: #a29bfe;
     }
+
+    .gender-tag {
+      padding: 2px 10px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .gender-tag.MALE { background: rgba(79,195,247,0.15); color: var(--male); }
+    .gender-tag.FEMALE { background: rgba(244,143,177,0.15); color: var(--female); }
+    .gender-tag.LGBT { background: rgba(206,147,216,0.15); color: var(--lgbt); }
 
     .copy-btn {
       padding: 6px 14px;
@@ -163,20 +197,10 @@
       transition: all 0.2s;
     }
 
-    .copy-btn:hover {
-      background: var(--accent);
-      color: white;
-    }
+    .copy-btn:hover { background: var(--accent); color: white; }
+    .copy-btn.copied { background: var(--success); border-color: var(--success); color: white; }
 
-    .copy-btn.copied {
-      background: var(--success);
-      border-color: var(--success);
-      color: white;
-    }
-
-    .card-body {
-      padding: 0 16px 16px;
-    }
+    .card-body { padding: 0 16px 16px; }
 
     .prompt-text {
       background: rgba(0,0,0,0.3);
@@ -208,10 +232,7 @@
       pointer-events: none;
     }
 
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     footer {
       text-align: center;
@@ -226,6 +247,7 @@
       .grid { grid-template-columns: 1fr; }
       .controls { flex-direction: column; }
       .search-box { width: 100%; }
+      .filter-group { flex-wrap: wrap; }
     }
   </style>
 </head>
@@ -233,7 +255,7 @@
 
 <header>
   <h1>Character Illustration Prompts</h1>
-  <p>60 character prompts &mdash; Click a prompt or use the copy button</p>
+  <p>60 face-focus PFP prompts &mdash; Click a prompt or use the copy button</p>
 </header>
 
 <div class="controls">
@@ -242,6 +264,12 @@
       <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
     </svg>
     <input type="text" id="searchInput" placeholder="Search characters...">
+  </div>
+  <div class="filter-group">
+    <button class="filter-btn active" data-g="ALL">ALL</button>
+    <button class="filter-btn" data-g="MALE">MALE</button>
+    <button class="filter-btn" data-g="FEMALE">FEMALE</button>
+    <button class="filter-btn" data-g="LGBT">LGBT</button>
   </div>
   <button class="copy-all-btn" id="copyAllBtn">Copy All Visible</button>
   <span class="count-info" id="countInfo">60 characters</span>
@@ -252,80 +280,85 @@
 <div class="toast" id="toast"></div>
 
 <footer>
-  <p>Character Illustration Prompts &mdash; Generated for imgprompt</p>
+  <p>Character Face-Focus PFP Prompts &mdash; Generated for imgprompt</p>
 </footer>
 
 <script>
 const characters = [
-  { name: "Jen", prompt: "A young woman with a calm and composed expression, long flowing hair, wearing a form-fitting blue bodysuit with a back zipper that extends down to her waist, a star-shaped accessory dangling from her neck. She wears tight black skinny leggings and a white shawl draped over her shoulders. She holds glowing black dice between her fingers. Her posture is elegant and confident, with an alluring yet dangerous aura. Full body portrait, anime style, detailed character design." },
-  { name: "TinaGue", prompt: "A confident and seductive woman in her early thirties with long black hair, wearing an extremely revealing red china dress with a single shoulder strap and a deep chest slit that exposes the side of her breast. She wears black high-leg spats that tightly hug her hips. Her expression is a mix of a mocking smile and fierce pride, with one hand on her hip in a provocative martial arts pose. Full body portrait, anime style, detailed character design." },
-  { name: "AlphaKane", prompt: "A rugged and determined man with an intense gaze, medium build with visible muscles, wearing practical combat gear with armor plating. He has short, messy hair and a sharp jawline. His expression carries the weight of someone who fights against oppression, with a rebellious and resolute aura. He stands in a dynamic combat-ready pose. Full body portrait, anime style, detailed character design." },
-  { name: "EriosWald", prompt: "A tall, stern-looking man with angular features and short, neatly combed hair. He wears a dark formal military-style uniform with rank insignia, giving him an authoritative presence. His expression is cold and calculating, with piercing eyes that suggest a strategic mind. He stands with perfect military posture. Full body portrait, anime style, detailed character design." },
-  { name: "ElForhaus", prompt: "A charismatic and youthful-looking man referred to as \"the rookie of the new era,\" with a confident smile and bright, visionary eyes. He wears a stylish yet practical outfit blending formal attire with technological accessories, suggesting a brilliant economist and technician. His hair is medium length and slightly tousled. He exudes an aura of revolutionary leadership and intellectual power. Full body portrait, anime style, detailed character design." },
-  { name: "TimurShah", prompt: "A wise and distinguished middle-aged man with graying hair, a well-groomed beard, and deep, contemplative eyes that reflect vast knowledge. He wears elegant robes with subtle geometric patterns suggesting advanced mathematics and philosophy. His expression is serene and visionary, with the dignity of a founding leader. He stands with a commanding yet gentle presence. Full body portrait, anime style, detailed character design." },
-  { name: "Gentaro", prompt: "A young man with a boyish, feminine face and black hair, slender and graceful build. He wears a tight blue shirt that emphasizes his slim figure, thin blue bikini brief shorts, a red mantle draped over his shoulders, and red boots. Around his neck is a silver collar with a thin chain. He carries a slender sword in one hand. His expression is a mix of shyness and determination, with large expressive eyes. Full body portrait, anime style, detailed character design." },
-  { name: "Willie", prompt: "A tall, rugged warrior-type man with broad shoulders and a muscular build. He has short, spiky hair and a rough, battle-hardened face with a small scar across his cheek. He wears weathered combat gear with practical armor pieces. His expression is fierce and protective, with a loyal and dependable aura. Full body portrait, anime style, detailed character design." },
-  { name: "Elena", prompt: "A striking woman in her late thirties with long, flowing silver hair that cascades down her back. She has sharp, intelligent eyes and a calm, composed smile that commands respect. She wears a sleek, dark formal outfit befitting a high-ranking intelligence bureau chief. Her expression blends warmth with authority, and she projects the aura of the strongest agent in the organization. Full body portrait, anime style, detailed character design." },
-  { name: "SebastianValerius", prompt: "A tall, commanding man with striking blue eyes and sharp features. He wears a long black coat over formal dark clothing, giving him a mysterious and authoritative presence. His hair is neat and dark, and his expression is always cool and analytical. He carries himself with the dignity of a world-class enforcement agency leader, with a calm but piercing gaze. Full body portrait, anime style, detailed character design." },
-  { name: "Gareth", prompt: "A strong, silent man with a well-built physique and grey eyes that burn with quiet intensity. He has short, practical hair and a stern, unreadable expression. He wears dark tactical combat gear suited for high-risk missions. His posture is always battle-ready, and he projects an aura of absolute loyalty, dependability, and formidable martial prowess. Full body portrait, anime style, detailed character design." },
-  { name: "MarinaBobbin", prompt: "A coldly beautiful woman in her late thirties with black hair tied back in a severe, strict style. She wears a military-inspired formal suit in dark colors, perfectly tailored to accentuate her authoritative figure. Her eyes are sharp and calculating, and her expression is one of iron-willed determination and ambition. She holds herself like a powerful political leader, exuding absolute confidence. Full body portrait, anime style, detailed character design." },
-  { name: "CastinaTempest", prompt: "An elegant and regal woman with blonde hair styled in a sophisticated updo. She wears a striking crimson dress that commands attention, with jewelry befitting a head of state. Her expression is graceful yet firm, with bright, intelligent eyes that show both warmth and political acumen. She radiates the confidence of a groundbreaking female leader. Full body portrait, anime style, detailed character design." },
-  { name: "Izumi", prompt: "A mysterious futanari figure with an intense, dangerous gaze and medium-length dark hair. She wears a sleek black longcoat that hints at her dual-gender nature, with a seductive yet predatory expression. Her personality shifts between a woman's sweet, alluring smile and a man's cruel, aggressive grin. She is the true leader of Alpha Venom, exuding raw power and manipulative charisma. Full body portrait, anime style, detailed character design." },
-  { name: "Leon", prompt: "A cunning and dangerous man with sharp features and an unsettling smirk. He has medium-length hair that falls across his face, partially obscuring one eye. His body can transform into dark slime, dissolving and reforming at will. He wears a dark, stylish outfit with silver snake emblems, suggesting his allegiance to a criminal syndicate. His expression is predatory and confident. Full body portrait, anime style, detailed character design." },
-  { name: "Vivietta", prompt: "A beautiful and refined woman of noble heritage with soft, elegant features and a strong-willed expression. She wears sophisticated clothing befitting aristocracy. Despite her composed exterior, she has a resilient spirit that refuses to break even under extreme pressure from supernatural enemies. Her posture is dignified even in captivity, showing unwavering inner strength. Full body portrait, anime style, detailed character design." },
-  { name: "LeviliaSerpentina", prompt: "A voluptuous and alluring woman with large curves, long flowing silver hair, and mesmerizing purple eyes that glow with psychic power. She wears a tight red china dress with high slits. She is a hyper-powerful esper who controls slime tentacles with telekinesis alone, never needing to lift a finger. Her expression is wickedly playful and confident, radiating the dangerous charm of a Silver Venom executive. Full body portrait, anime style, detailed character design." },
-  { name: "Miyushari", prompt: "A cheerful and energetic young woman with bright chestnut-brown hair tied in a ponytail and expressive, friendly eyes. She wears a glossy black lam\u00e9 bodysuit that is revealing at the navel and thighs, with a cropped jacket over it. Her expression shows both warmth and keen intelligence. She is a brilliant strategist and debater who uses clairvoyance abilities in combat. Full body portrait, anime style, detailed character design." },
-  { name: "Fariel", prompt: "A sincere and earnest young woman with shoulder-length black hair and gentle eyes behind thin-framed glasses. She wears a practical, military-style outfit suited for a world-class enforcement operative. Her expression is serious and focused, showing analytical intelligence. She carries herself with quiet confidence and loyalty. Full body portrait, anime style, detailed character design." },
-  { name: "AinaVonRiesfeld", prompt: "A dignified and disciplined young woman with serious, determined eyes and neatly styled hair. She wears gleaming silver armor over a formal suit, giving her the appearance of a noble knight. Her expression is resolute and duty-bound, with the bearing of someone deeply committed to protecting her homeland. She stands tall and proud. Full body portrait, anime style, detailed character design." },
-  { name: "FredericGabby", prompt: "A stylish and confident man with a relaxed but capable air. He wears a high-fashion coat over smart casual clothing, with an easy smile that hides sharp intelligence. His hair is well-groomed, and his posture is casual yet alert. He projects the aura of a skilled operative who combines charm with deadly competence. Full body portrait, anime style, detailed character design." },
-  { name: "SheronJeras", prompt: "A calm and composed operative with striking white hair blowing in the wind and perceptive features. He has a gentle but sharp expression, with eyes that read situations instantly. He wears practical, understated tactical clothing. His demeanor is quiet and observant, projecting calm strength and reliability as a field leader who kneels to assess situations before acting. Full body portrait, anime style, detailed character design." },
-  { name: "Ilmise", prompt: "A mysterious and quiet young woman with shoulder-length black hair and an unreadable expression. She wears practical combat gear. Despite her unassuming appearance, she is a skilled operative who carries specialized devices and magical artifacts. Her calm, emotionless demeanor hides sharp instincts and quiet competence. Full body portrait, anime style, detailed character design." },
-  { name: "WhiteNoise", prompt: "A mysterious figure with white hair and a silent, unsettling presence. They rarely speak, communicating through subtle gestures. They wear dark tactical clothing with minimal distinguishing features. Their expression is unreadable and serene, projecting an aura of someone who exists between dimensions. They are associated with distortion and disruption abilities. Full body portrait, anime style, detailed character design." },
-  { name: "Wadrina", prompt: "A tough, experienced woman warrior with half of her body cybernetically enhanced. She has mechanical red glowing eyes and reinforced combat prosthetics. She wears heavy combat gear adapted for harsh environments. Her expression is mechanically calm and analytical, as she constantly scans her surroundings. She projects the hardened resolve of a cyborg operative. Full body portrait, anime style, detailed character design." },
-  { name: "NinigisKaras", prompt: "A silent and mysterious operative who wears a distinctive mask covering their face. Their build is lean and athletic, suited for stealth missions. They wear dark, tactical clothing with minimal distinguishing features, designed for anonymity. Even behind the mask, their body language communicates focus and lethal efficiency. They project an aura of dangerous silence. Full body portrait, anime style, detailed character design." },
-  { name: "Yeshibato", prompt: "A cheerful and laid-back young man with bleached brown hair that he nervously plays with using his fingers. He has an easygoing smile and a relaxed posture. He wears casual, practical clothing. His expression can shift from upbeat to nervous in tense situations, but he remains loyal and dependable despite his anxiety. Full body portrait, anime style, detailed character design." },
-  { name: "AzazelHectopus", prompt: "An imposing man in his late fifties with a stern, deeply lined face and a military bearing. He has short, neat grey hair and cold, authoritarian eyes. He wears a formal military-style leader's uniform with decorations and insignia of high rank. His build is large and powerful, and his expression projects conservative strength as the leader of the Vermilion faction. Full body portrait, anime style, detailed character design." },
-  { name: "Piatrino", prompt: "A young woman with glasses and distinctive large hips, wearing a blue china dress with black spats underneath. Her hair is dark and styled in a neat bob cut. Her expression is a mix of earnestness and slight nervousness, with intelligent eyes behind her glasses. Despite her somewhat shy demeanor, she carries herself with underlying determination and keen analytical skills. Full body portrait, anime style, detailed character design." },
-  { name: "AikeLopez", prompt: "A young and ambitious male leader with sharp features and an intense gaze. He has neatly styled hair and a calculating, intelligent expression. He wears formal but modern political attire suggesting a tech-savvy government leader. His eyes are bright with ambition and strategic thinking. He projects the aura of a rising political star who plays the long game. Full body portrait, anime style, detailed character design." },
-  { name: "ReidKakizaki", prompt: "A rugged, battle-hardened man with a rough, muscular build and a blunt, no-nonsense expression. He has short, practical hair and sharp eyes that have seen many conflicts. He wears a military uniform with heavy armor elements, suggesting a military-first governance philosophy. His posture is confrontational and powerful, projecting the strength of a military syndicate leader. Full body portrait, anime style, detailed character design." },
-  { name: "MikaelGabrieli", prompt: "A distinguished man with silver-rimmed glasses and a calm, analytical expression. He has well-groomed hair and the refined appearance of a corporate CEO. He wears an expensive, tailored suit in dark colors. His eyes are calculating and perceptive, always evaluating risks and opportunities. He projects the authority of someone who controls vast economic power as the head of Faruja Corporation. Full body portrait, anime style, detailed character design." },
-  { name: "Yonik", prompt: "A stern and disciplined military commander in middle age, wearing a formal military uniform with command insignia. He has a weathered face with an imposing presence, sharp eyes, and a rigid posture. His expression shows both authority and hidden vulnerability, suggesting a leader who bears heavy responsibility. He projects the image of a supreme military commander. Full body portrait, anime style, detailed character design." },
-  { name: "MasterVenom", prompt: "A tall, imposing, and terrifying figure whose presence radiates venom and menace. Their features are sharp and angular, with cold, calculating eyes that glow with malice. They wear dark, organic-looking armor with serpentine motifs in venom-green accents. Their expression is one of absolute authority and cruelty. They project the aura of the ultimate antagonist, the mastermind behind the Venom syndicate. Full body portrait, anime style, detailed character design." },
-  { name: "Goldilocks", prompt: "A flashy young woman with long golden blonde hair, wearing dark combat clothing with golden snake emblems. She has an arrogant, self-important expression with sharp, mocking eyes. Her hair is styled dramatically, and she carries herself with theatrical confidence. Her body can transform into slime form, shifting between human and liquid states. She projects the aura of an Alpha Venom executive. Full body portrait, anime style, detailed character design." },
-  { name: "Katarina", prompt: "A fierce and capable woman warrior with a strong, athletic build and determined eyes. She has long silver hair flowing dramatically and practical battle-ready features. She wears dark combat clothing with an erotic edge. Her expression is serious and cold, showing both discipline and cruelty as one of the top executives of Alpha Venom. Full body portrait, anime style, detailed character design." },
-  { name: "Bobristy", prompt: "A mysterious woman whose body is covered in thick black sludge and mud, making her true form difficult to discern. She is a specialist in liquid manipulation, able to control and weaponize the viscous substances covering her body. Her expression is menacing and determined. She projects the dark, dangerous aura of a Silver Venom veteran operative. Full body portrait, anime style, detailed character design." },
-  { name: "Gil", prompt: "A mysterious and dangerous man with a low, commanding voice and unsettling presence. He has the ability to create invisible force fields and manipulate spatial dimensions, locking enemies in place with invisible barriers. He wears dark tactical clothing. His expression is calm and menacing, projecting the terrifying aura of a spatial manipulation specialist for Alpha Venom. Full body portrait, anime style, detailed character design." },
-  { name: "Lastman", prompt: "A skinny but unnervingly persistent man with an obsessive, lecherous stare. He has messy, unkempt hair and constantly licks his lips. His clothes are dark and disheveled, suggesting a desperate criminal. His expression is a mix of depravity and cunning, with eyes that dart around looking for targets. He is a notorious remnant of Silver Venom known for perverted obsession. Full body portrait, anime style, detailed character design." },
-  { name: "AJ", prompt: "A striking figure with short, boyish black hair and a feminine, slender body. They wear a tight black shirt, bright blue bikini brief shorts, and a short mantle over their shoulders. Their appearance is ambiguously beautiful, combining feminine elegance with a notable masculine feature. Their expression is seductive and playful with an erotic undertone. A Silver Venom member known as Alfred Juice. Full body portrait, anime style, detailed character design." },
-  { name: "SlimeWoman", prompt: "A semi-transparent, humanoid figure made of glossy blue slime shaped like a beautiful woman. Her form ripples and shifts with viscous, fluid movement. Small tendrils and worm-like appendages extend from her body. She has an alien, hypnotic beauty with luminous eyes floating within the translucent liquid surface. She projects an otherworldly, unsettling presence as a living slime organism. Full body portrait, anime style, detailed character design." },
-  { name: "Temirtaron", prompt: "A distinguished physicist and philosopher with an intense, visionary expression. He has medium-length hair and deep, contemplative eyes that see beyond ordinary dimensions. He wears scholarly robes with mathematical symbols and cosmic patterns woven into the fabric. His expression is passionate and intellectual, suggesting a mind that grapples with the nature of reality itself and the architect of the Dimension Pyramid. Full body portrait, anime style, detailed character design." },
-  { name: "AriaSol", prompt: "An elegant and diplomatic woman with warm, intelligent eyes and gracefully styled hair. She wears refined but practical clothing that suggests both political acumen and cultural sophistication. Her expression is serene and conciliatory, with the wisdom of someone who bridges divides between nations. She carries herself with the grace of a natural mediator and leader who envisions planetary federation. Full body portrait, anime style, detailed character design." },
-  { name: "Zena", prompt: "A striking and resourceful woman with sharp, calculating eyes and a business-minded expression. She wears elegant clothing suited for interstellar trade, with technological accessories. She is a female merchant who handles the trade of exploitation biotechnology on Eros-7. Her expression is calm and knowing, with the shrewdness of a successful trader navigating complex political landscapes. Full body portrait, anime style, detailed character design." },
-  { name: "LilithVane", prompt: "A commanding and formidable woman with a regal, imperious bearing. She has long, dark hair and sharp, calculating eyes that show no mercy. She wears elegant but dark clothing with organic, bio-engineered elements, suggesting mastery over living technology. Her expression is one of absolute authority and cold pragmatism, befitting the founder of a matriarchal society on Eros-7. Full body portrait, anime style, detailed character design." },
-  { name: "SylviaCrow", prompt: "A powerful woman with an intense, psychic presence. She has sharp, perceptive eyes that seem to glow with telepathic energy. Her hair is dramatic and distinctive. She wears a mix of scientific and mystical attire, blending technology with bio-synthesis. Her expression is focused and commanding. She gained esper abilities through mutated exploitation organisms and developed suppression agents to control bio-crises. Full body portrait, anime style, detailed character design." },
-  { name: "KarlaVelm", prompt: "A stern and calculating woman leader with a commanding presence. She has sharp features and cold, authoritarian eyes. She wears dark formal attire with military elements. As the leader who built the Squeeze Abyss, a 560-story underground exploitation facility, she projects the ruthless pragmatism of a military-industrial mastermind who weaponized bio-energy technology. Full body portrait, anime style, detailed character design." },
-  { name: "Garo", prompt: "A tough, battle-hardened underground resistance leader with a large, imposing build and a fearless expression. He has short, spiky hair and fierce, determined eyes. He wears heavy combat gear adapted for the harsh conditions of the Eros-7 underground. His posture is aggressive and powerful, projecting raw physical strength and the resolve of a freedom fighter leading the Shadow Union. Full body portrait, anime style, detailed character design." },
-  { name: "AyakaRin", prompt: "A skilled and determined woman with a focused, strategic expression. She has sharp, intelligent eyes and neatly maintained dark hair. She wears tactical clothing suited for intervention missions in hostile environments. Her expression shows resolve and a deep sense of justice, as the revolutionary who allied with Garo and Zena to reform the matriarchal society of Eros-7, becoming a symbol of gender equality. Full body portrait, anime style, detailed character design." },
-  { name: "CasteriaGrenvelt", prompt: "A striking young girl with long blonde hair and bright yellow eyes, appearing younger than her actual age. She wears a simple black dress that contrasts with her regal bearing. Despite her loli-like appearance, her expression carries wisdom and confidence far beyond her years. She has the ability to levitate slightly, with her feet floating above the ground. A mysterious esper with vast powers. Full body portrait, anime style, detailed character design." },
-  { name: "SitraCeles", prompt: "A formidable 28-year-old emperor with a healthy, muscular physique and smooth, attractive skin that captivates court ladies. He has a gentle, kind, and submissive personality with strong masochistic tendencies. He wears the elaborate robes of the Vulcan Empire. Despite his powerful body and imperial authority, he prefers to be dominated by his wife Elegia, finding his ultimate pleasure in observation and submission. Full body portrait, anime style, detailed character design." },
-  { name: "Myu", prompt: "A mysterious and ethereal young girl with a soft, otherworldly appearance. She has unusual colored hair that seems to move on its own and large, expressive eyes. She wears a simple, cute outfit that contrasts with the dark world around her. Her expression is a mix of innocence and hidden depth, suggesting someone who observes more than she reveals. She is linked to ancient dimensional technology. Full body portrait, anime style, detailed character design." },
-  { name: "Jun", prompt: "A young person with a friendly, approachable expression and practical clothing suited for everyday life. They have neat, well-kept hair and observant eyes that miss little. They wear casual but clean attire suggesting an ordinary background. Their expression is warm and curious, with a hint of underlying strength that emerges when needed. They are connected to the slime-related incidents. Full body portrait, anime style, detailed character design." }
+  { name: "Jen", gender: "MALE", prompt: "Face-focus portrait of a 27-year-old male with strikingly feminine androgynous beauty, long platinum-blonde hair framing his face, glossy hairless pale skin, large expressive eyes with an elegant yet heroic gaze, soft refined features with high cheekbones and a delicate jawline, calm and composed expression with a hint of grace. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "TinaGue", gender: "FEMALE", prompt: "Face-focus portrait of a confident woman in her thirties with long flowing black hair, sharp seductive eyes with a mocking glint, full lips curved into a proud haughty smirk, bold makeup with defined eyeliner and striking eyebrows, beautiful mature features with high cheekbones and a commanding gaze. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "AlphaKane", gender: "MALE", prompt: "Face-focus portrait of a rugged determined man with short messy dark hair, an intense rebellious gaze burning with conviction, sharp jawline covered in light stubble, piercing eyes that carry the weight of fighting oppression, stern brows furrowed with resolve, weathered skin from a life of struggle. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "EriosWald", gender: "MALE", prompt: "Face-focus portrait of a stern angular-faced man with short neatly combed dark hair, cold calculating eyes with a strategic gaze, sharp precise features with high cheekbones, clean-shaven with a rigid jawline, expression of quiet authority and intellectual resolve, eyes that suggest a visionary mind. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "ElForhaus", gender: "MALE", prompt: "Face-focus portrait of a charismatic young man with medium-length slightly tousled hair, bright visionary eyes that sparkle with revolutionary ideas, confident easy smile full of optimism, refined intelligent features with a sharp jawline, the look of a brilliant economist who dreams of changing the world. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "TimurShah", gender: "MALE", prompt: "Face-focus portrait of a wise distinguished middle-aged man with graying hair and a well-groomed beard, deep contemplative eyes reflecting vast philosophical knowledge, serene visionary expression with quiet dignity, weathered noble features that command respect, the look of a founding intellectual leader. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Gentaro", gender: "MALE", prompt: "Face-focus portrait of a young man with a boyish feminine face and black hair, large expressive gloomy eyes showing inner emptiness, soft delicate features with pale skin, downcast melancholic expression with a hint of hidden determination, thin eyebrows and slightly pursed lips. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Willie", gender: "MALE", prompt: "Face-focus portrait of a rugged broad-shouldered man with short spiky hair, a small scar across his cheek, warm but battle-hardened eyes showing quiet loyalty, rough masculine features with a strong jaw, expression of steady dependable calmness and protective care. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Elena", gender: "FEMALE", prompt: "Face-focus portrait of a striking woman in her late thirties with long flowing silver hair cascading past her shoulders, sharp intelligent eyes that blend warmth with authority, calm composed expression with subtle concern in her gaze, refined elegant features with high cheekbones and dignified bearing. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "SebastianValerius", gender: "MALE", prompt: "Face-focus portrait of a commanding man with striking cold blue eyes, neat dark hair, sharp aristocratic features with a strong defined jawline, cool analytical expression showing no emotion, piercing gaze that freezes opponents in their tracks, the face of a world-class elite fighter. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Gareth", gender: "MALE", prompt: "Face-focus portrait of a strong silent man with short practical hair, intense grey eyes burning with quiet ferocity, stern unreadable expression with a clenched jaw, rugged masculine features with a battle-hardened face, the look of absolute loyalty and formidable martial prowess. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "MarinaBobbin", gender: "FEMALE", prompt: "Face-focus portrait of a coldly beautiful woman in her late thirties with black hair pulled back in a severe strict style, sharp calculating eyes showing iron-willed ambition, thin precise lips set in a determined line, aristocratic features projecting absolute political authority. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "CastinaTempest", gender: "FEMALE", prompt: "Face-focus portrait of an elegant regal woman with blonde hair styled in a sophisticated updo, bright intelligent eyes showing both warmth and political acumen, graceful yet firm expression with a confident subtle smile, refined features befitting a groundbreaking head of state. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Izumi", gender: "LGBT", prompt: "Face-focus portrait of a futanari with an intense dangerous gaze and medium-length dark hair, dual personality showing both a sweet alluring feminine smile and a cruel aggressive masculine grin, sharp beautiful features that shift between seductive softness and predatory hardness, mesmerizing eyes that captivate and terrify. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Leon", gender: "MALE", prompt: "Face-focus portrait of a cunning dangerous man with medium-length hair falling across his face partially obscuring one eye, unsettling predatory smirk, sharp features with an obsessive glint in his visible eye, pale skin with a mysterious otherworldly quality. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Vivietta", gender: "FEMALE", prompt: "Face-focus portrait of a beautiful refined woman of noble heritage with soft elegant features, wavy warm-colored hair framing her face, gentle but strong-willed expression showing inner resilience beneath composure, refined aristocratic bearing with kind yet determined eyes. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "LeviliaSerpentina", gender: "FEMALE", prompt: "Face-focus portrait of an alluring woman with long flowing silver hair and mesmerizing purple eyes that glow with psychic power, wickedly playful confident smirk, voluptuous beautiful features with an air of absolute supernatural dominance, predatory beauty that enchants and terrifies. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Miyushari", gender: "FEMALE", prompt: "Face-focus portrait of a cheerful energetic young woman with bright chestnut-brown hair in a ponytail, expressive friendly eyes full of warmth and keen intelligence, wide bright smile showing both kindness and sharp wit, lively animated features with an upbeat confident aura. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Fariel", gender: "FEMALE", prompt: "Face-focus portrait of a sincere earnest young woman with shoulder-length black hair, gentle eyes behind thin-framed glasses, serious focused expression showing analytical intelligence, soft refined features with quiet dignity, the look of a loyal dedicated operative. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "AinaVonRiesfeld", gender: "FEMALE", prompt: "Face-focus portrait of a dignified disciplined young woman with neatly styled hair, serious determined eyes burning with knightly duty, resolute expression showing unwavering commitment to protecting her homeland, clean refined features with noble bearing and quiet strength. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "FredericGabby", gender: "MALE", prompt: "Face-focus portrait of a stylish confident man with well-groomed hair, easy charming smile hiding sharp intelligence behind relaxed features, alert observant eyes that miss nothing, refined handsome face combining casual elegance with hidden lethal competence. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "SheronJeras", gender: "MALE", prompt: "Face-focus portrait of a calm composed operative with striking white hair, gentle but perceptive eyes that instantly read any situation, quiet observant expression with subtle warmth, refined sharp features showing both intelligence and field-hardened reliability. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Ilmise", gender: "FEMALE", prompt: "Face-focus portrait of a mysterious quiet young woman with shoulder-length black hair, unreadable calm expression showing no emotion, dark intelligent eyes with hidden sharp instincts, pale composed features with an air of quiet competence and silent observation. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "WhiteNoise", gender: "MALE", prompt: "Face-focus portrait of a mysterious man with white hair and a silent unsettling presence, unreadable serene expression like static between dimensions, eyes that seem to vibrate with distorted energy, pale sharp features partially obscured by visual noise and glitch effects. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Wadrina", gender: "FEMALE", prompt: "Face-focus portrait of a tough experienced woman with half her face cybernetically enhanced, one glowing red mechanical eye contrasting with her natural features, mechanically calm analytical expression, battle-hardened face with scars telling stories of many fights, the look of a hardened cyborg warrior. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "NinigisKaras", gender: "MALE", prompt: "Face-focus portrait of a mysterious masked operative wearing a distinctive dark mask covering the entire face, only sharp alert eyes visible through the mask, lean athletic jaw visible below the mask edge, the mask has subtle engravings suggesting a clan symbol, intense focused gaze projecting lethal efficiency. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Yeshibato", gender: "MALE", prompt: "Face-focus portrait of a cheerful laid-back young man with bleached brown hair that falls messily over his forehead, easygoing smile that hides nervous energy, bright friendly eyes that can shift to anxious in tense moments, casual relaxed features with an underlying loyal determination. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "AzazelHectopus", gender: "MALE", prompt: "Face-focus portrait of an imposing man in his late fifties with a stern deeply lined face, short neat grey hair, cold authoritarian eyes showing decades of military discipline, heavy rigid features projecting conservative strength and resistance to change, the weathered face of a faction leader. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Piatrino", gender: "FEMALE", prompt: "Face-focus portrait of a young woman with glasses and dark hair styled in a neat bob cut, intelligent eyes behind round lenses showing earnest analytical thinking, slightly nervous but determined expression, soft cute features with a hint of shyness and underlying resolve. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "AikeLopez", gender: "MALE", prompt: "Face-focus portrait of a young ambitious male leader with sharp features and an intense calculating gaze, neatly styled hair, intelligent eyes bright with ambition and strategic thinking, confident expression of a rising political star who always plays the long game. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "ReidKakizaki", gender: "MALE", prompt: "Face-focus portrait of a rugged battle-hardened man with short practical hair, sharp eyes that have witnessed many conflicts, blunt confrontational expression with a rough beard, powerful jaw set in stubborn determination, the fierce face of a military syndicate leader. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "MikaelGabrieli", gender: "MALE", prompt: "Face-focus portrait of a distinguished man wearing silver-rimmed glasses, well-groomed hair, calm analytical expression with calculating perceptive eyes behind the lenses, refined handsome features always evaluating risks, the composed face of a powerful corporate CEO. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Yonik", gender: "MALE", prompt: "Face-focus portrait of a stern disciplined military commander in middle age with a weathered imposing face, sharp commanding eyes showing both authority and hidden vulnerability, rigid military bearing visible in his set jaw and furrowed brow, the heavy gaze of a supreme commander bearing great responsibility. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "MasterVenom", gender: "MALE", prompt: "Face-focus portrait of a terrifying imposing man with sharp angular features, cold calculating eyes that glow with venomous malice, cruel confident smile showing absolute authority, dark commanding presence with serpentine intensity, the ultimate antagonist face radiating menace. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Goldilocks", gender: "FEMALE", prompt: "Face-focus portrait of a flashy young woman with long dramatic golden blonde hair, arrogant self-important expression with sharp mocking eyes, beautiful features with theatrical confidence and a cruel smile, glamorous face demanding attention like a criminal queen. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Katarina", gender: "FEMALE", prompt: "Face-focus portrait of a fierce capable woman warrior with long flowing silver hair, cold serious eyes showing both discipline and cruelty, sharp battle-hardened features with an intimidating icy stare, beautiful but dangerous expression of an elite criminal executive. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Bobristy", gender: "FEMALE", prompt: "Face-focus portrait of a mysterious woman with viscous black sludge dripping across half her face, one visible eye glowing menacingly through the mud, sharp determined features partially obscured by the dark sludge coating her skin, an eerie unsettling beauty beneath the ooze. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Gil", gender: "MALE", prompt: "Face-focus portrait of a mysterious dangerous man with an unsettling hypnotic gaze, calm menacing expression as if reading your mind, pale sharp features with an androgynous quality, unusual eye color that seems to distort space around him, the terrifying face of a spatial manipulation specialist. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Lastman", gender: "MALE", prompt: "Face-focus portrait of a skinny unnervingly persistent man with messy unkempt hair, obsessive lecherous stare with darting shifty eyes, constantly licking his lips with a depraved grin, gaunt hollow features showing desperation and cunning, the unsettling face of a notorious perverted criminal. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "AJ", gender: "LGBT", prompt: "Face-focus portrait of an ambiguously beautiful figure with short boyish black hair, soft feminine facial features combined with a subtly masculine jawline, seductive playful expression with an erotic undertone, large alluring eyes that blend feminine charm with masculine confidence, androgynous beauty that defies categorization. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "SlimeWoman", gender: "FEMALE", prompt: "Face-focus portrait of a semi-transparent humanoid face made of glossy blue slime, luminous alien eyes floating within the translucent liquid surface, beautiful female features formed entirely of viscous rippling slime, the face ripples and shifts with fluid movement, otherworldly hypnotic beauty. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Temirtaron", gender: "MALE", prompt: "Face-focus portrait of a distinguished physicist and philosopher with medium-length hair, deep contemplative eyes that seem to perceive other dimensions, intense passionate intellectual expression, refined scholarly features with the fire of a visionary who understands the fabric of reality itself. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "AriaSol", gender: "FEMALE", prompt: "Face-focus portrait of an elegant diplomatic woman with gracefully styled hair, warm intelligent eyes showing both political wisdom and cultural sophistication, serene conciliatory expression with a gentle knowing smile, refined features radiating the grace of a natural mediator and visionary leader. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Zena", gender: "FEMALE", prompt: "Face-focus portrait of a striking resourceful woman with sharp calculating eyes and a shrewd business-minded expression, calm knowing smile of a successful trader, elegant features with technological accessories near her face, the confident face of an interstellar merchant navigating complex politics. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "LilithVane", gender: "FEMALE", prompt: "Face-focus portrait of a commanding formidable woman with long dark hair, sharp calculating eyes showing absolutely no mercy, regal imperious expression of cold pragmatism, beautiful but terrifying features befitting the founder of a matriarchal civilization, the face of absolute female authority. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "SylviaCrow", gender: "FEMALE", prompt: "Face-focus portrait of a powerful woman with dramatic distinctive hair, sharp perceptive eyes that seem to glow with telepathic energy, focused commanding expression of a born leader, striking features blending scientific intellect with supernatural psychic power. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "KarlaVelm", gender: "FEMALE", prompt: "Face-focus portrait of a stern calculating woman leader with sharp features and cold authoritarian eyes, rigid commanding expression of ruthless military-industrial pragmatism, beautiful but severe face showing someone who weaponizes technology without hesitation. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Garo", gender: "MALE", prompt: "Face-focus portrait of a tough battle-hardened man with short spiky hair, fierce determined eyes blazing with revolutionary fire, powerful rugged features scarred from underground resistance fights, fearless aggressive expression of a freedom fighter who leads from the front. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "AyakaRin", gender: "FEMALE", prompt: "Face-focus portrait of a skilled determined woman with neatly maintained dark hair, sharp intelligent eyes burning with resolve and a deep sense of justice, focused strategic expression of someone willing to fight oppression, beautiful features hardened by the conviction of a revolutionary. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "CasteriaGrenvelt", gender: "FEMALE", prompt: "Face-focus portrait of a striking young girl with long blonde hair and bright yellow eyes, appearing much younger than her actual age, expression carrying ancient wisdom and confidence far beyond her years, mysterious ethereal features with an otherworldly aura of vast hidden power. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "SitraCeles", gender: "MALE", prompt: "Face-focus portrait of a 28-year-old male emperor with a healthy attractive smooth face, gentle kind eyes with a submissive soft gaze, refined handsome features that captivate onlookers, mild masochistic expression showing quiet pleasure in surrender, the paradoxically beautiful face of a powerful ruler who prefers to be dominated. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Myu", gender: "FEMALE", prompt: "Face-focus portrait of a mysterious ethereal young girl with unusual colored hair that seems to drift on its own, large expressive eyes showing both innocence and ancient hidden depth, soft otherworldly features with a gentle knowing gaze, a face that observes far more than it reveals. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." },
+  { name: "Jun", gender: "MALE", prompt: "Face-focus portrait of a young man with a friendly approachable expression, neat well-kept hair, warm curious eyes that miss little, ordinary clean-cut features with a hint of underlying strength that emerges when needed, the unassuming face of someone connected to extraordinary events. Close-up face shot, anime style, PFP profile picture, detailed facial features, clean solid background." }
 ];
 
 const grid = document.getElementById('cardGrid');
 const searchInput = document.getElementById('searchInput');
 const countInfo = document.getElementById('countInfo');
 const toast = document.getElementById('toast');
+let activeFilter = 'ALL';
 
-function renderCards(data) {
+function renderCards() {
   grid.innerHTML = '';
-  data.forEach((char, index) => {
+  characters.forEach((char, index) => {
     const card = document.createElement('div');
     card.className = 'card';
     card.dataset.name = char.name.toLowerCase();
+    card.dataset.gender = char.gender;
     card.innerHTML = `
       <div class="card-header">
-        <h2>${char.name}</h2>
+        <div class="card-header-left">
+          <h2>${char.name}</h2>
+          <span class="gender-tag ${char.gender}">${char.gender}</span>
+        </div>
         <button class="copy-btn" data-index="${index}">Copy</button>
       </div>
       <div class="card-body">
@@ -338,10 +371,29 @@ function renderCards(data) {
   document.querySelectorAll('.copy-btn').forEach(btn => {
     btn.addEventListener('click', () => copyPrompt(btn.dataset.index, btn));
   });
-
   document.querySelectorAll('.prompt-text').forEach(el => {
     el.addEventListener('click', () => copyPrompt(el.dataset.index));
   });
+}
+
+function applyFilters() {
+  const query = searchInput.value.toLowerCase().trim();
+  const cards = document.querySelectorAll('.card');
+  let count = 0;
+  cards.forEach(card => {
+    const name = card.dataset.name;
+    const gender = card.dataset.gender;
+    const prompt = card.querySelector('.prompt-text').textContent.toLowerCase();
+    const matchSearch = !query || name.includes(query) || prompt.includes(query);
+    const matchGender = activeFilter === 'ALL' || gender === activeFilter;
+    if (matchSearch && matchGender) {
+      card.classList.remove('hidden');
+      count++;
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+  countInfo.textContent = `${count} / ${characters.length} characters`;
 }
 
 function copyPrompt(index, btnElement) {
@@ -365,7 +417,7 @@ function copyAllVisible() {
   const texts = [];
   visibleCards.forEach(card => {
     const idx = parseInt(card.querySelector('.copy-btn').dataset.index);
-    texts.push(`## ${characters[idx].name}\n${characters[idx].prompt}`);
+    texts.push(`## ${characters[idx].name} [${characters[idx].gender}]\n${characters[idx].prompt}`);
   });
   navigator.clipboard.writeText(texts.join('\n\n')).then(() => {
     showToast(`Copied ${visibleCards.length} prompts!`);
@@ -378,26 +430,20 @@ function showToast(msg) {
   setTimeout(() => toast.classList.remove('show'), 2000);
 }
 
-searchInput.addEventListener('input', () => {
-  const query = searchInput.value.toLowerCase().trim();
-  const cards = document.querySelectorAll('.card');
-  let count = 0;
-  cards.forEach(card => {
-    const name = card.dataset.name;
-    const prompt = card.querySelector('.prompt-text').textContent.toLowerCase();
-    if (!query || name.includes(query) || prompt.includes(query)) {
-      card.classList.remove('hidden');
-      count++;
-    } else {
-      card.classList.add('hidden');
-    }
+searchInput.addEventListener('input', applyFilters);
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.g;
+    applyFilters();
   });
-  countInfo.textContent = `${count} / ${characters.length} characters`;
 });
 
 document.getElementById('copyAllBtn').addEventListener('click', copyAllVisible);
 
-renderCards(characters);
+renderCards();
 </script>
 </body>
 </html>
