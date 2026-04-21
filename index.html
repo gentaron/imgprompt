@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Character Illustration Prompts</title>
+  <style>
+    :root {
+      --bg: #0f0f13;
+      --card: #1a1a24;
+      --border: #2a2a3a;
+      --accent: #6c5ce7;
+      --accent-hover: #7d6ff0;
+      --text: #e0e0e8;
+      --text-dim: #8888a0;
+      --success: #00d2a0;
+      --search-bg: #16161e;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      padding: 40px 20px 30px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #6c5ce7, #a29bfe, #74b9ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      color: var(--text-dim);
+      font-size: 0.95rem;
+    }
+
+    .controls {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 20px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 250px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 12px 16px 12px 44px;
+      background: var(--search-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-box input:focus {
+      border-color: var(--accent);
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      color: var(--text-dim);
+    }
+
+    .copy-all-btn {
+      padding: 12px 24px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    .copy-all-btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .count-info {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+
+    .grid {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 20px 60px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+    }
+
+    .card.hidden {
+      display: none;
+    }
+
+    .card-header {
+      padding: 16px 16px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-header h2 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #a29bfe;
+    }
+
+    .copy-btn {
+      padding: 6px 14px;
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    .copy-btn.copied {
+      background: var(--success);
+      border-color: var(--success);
+      color: white;
+    }
+
+    .card-body {
+      padding: 0 16px 16px;
+    }
+
+    .prompt-text {
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: #c0c0d0;
+      word-break: break-word;
+      white-space: pre-wrap;
+      cursor: text;
+      user-select: all;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--success);
+      color: #0f0f13;
+      padding: 12px 28px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 768px) {
+      header h1 { font-size: 1.6rem; }
+      .grid { grid-template-columns: 1fr; }
+      .controls { flex-direction: column; }
+      .search-box { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Character Illustration Prompts</h1>
+  <p>60 character prompts &mdash; Click a prompt or use the copy button</p>
+</header>
+
+<div class="controls">
+  <div class="search-box">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input type="text" id="searchInput" placeholder="Search characters...">
+  </div>
+  <button class="copy-all-btn" id="copyAllBtn">Copy All Visible</button>
+  <span class="count-info" id="countInfo">60 characters</span>
+</div>
+
+<div class="grid" id="cardGrid"></div>
+
+<div class="toast" id="toast"></div>
+
+<footer>
+  <p>Character Illustration Prompts &mdash; Generated for imgprompt</p>
+</footer>
+
+<script>
+const characters = [
+  { name: "Jen", prompt: "A young woman with a calm and composed expression, long flowing hair, wearing a form-fitting blue bodysuit with a back zipper that extends down to her waist, a star-shaped accessory dangling from her neck. She wears tight black skinny leggings and a white shawl draped over her shoulders. She holds glowing black dice between her fingers. Her posture is elegant and confident, with an alluring yet dangerous aura. Full body portrait, anime style, detailed character design." },
+  { name: "TinaGue", prompt: "A confident and seductive woman in her early thirties with long black hair, wearing an extremely revealing red china dress with a single shoulder strap and a deep chest slit that exposes the side of her breast. She wears black high-leg spats that tightly hug her hips. Her expression is a mix of a mocking smile and fierce pride, with one hand on her hip in a provocative martial arts pose. Full body portrait, anime style, detailed character design." },
+  { name: "AlphaKane", prompt: "A rugged and determined man with an intense gaze, medium build with visible muscles, wearing practical combat gear with armor plating. He has short, messy hair and a sharp jawline. His expression carries the weight of someone who fights against oppression, with a rebellious and resolute aura. He stands in a dynamic combat-ready pose. Full body portrait, anime style, detailed character design." },
+  { name: "EriosWald", prompt: "A tall, stern-looking man with angular features and short, neatly combed hair. He wears a dark formal military-style uniform with rank insignia, giving him an authoritative presence. His expression is cold and calculating, with piercing eyes that suggest a strategic mind. He stands with perfect military posture. Full body portrait, anime style, detailed character design." },
+  { name: "ElForhaus", prompt: "A charismatic and youthful-looking man referred to as \"the rookie of the new era,\" with a confident smile and bright, visionary eyes. He wears a stylish yet practical outfit blending formal attire with technological accessories, suggesting a brilliant economist and technician. His hair is medium length and slightly tousled. He exudes an aura of revolutionary leadership and intellectual power. Full body portrait, anime style, detailed character design." },
+  { name: "TimurShah", prompt: "A wise and distinguished middle-aged man with graying hair, a well-groomed beard, and deep, contemplative eyes that reflect vast knowledge. He wears elegant robes with subtle geometric patterns suggesting advanced mathematics and philosophy. His expression is serene and visionary, with the dignity of a founding leader. He stands with a commanding yet gentle presence. Full body portrait, anime style, detailed character design." },
+  { name: "Gentaro", prompt: "A young man with a boyish, feminine face and black hair, slender and graceful build. He wears a tight blue shirt that emphasizes his slim figure, thin blue bikini brief shorts, a red mantle draped over his shoulders, and red boots. Around his neck is a silver collar with a thin chain. He carries a slender sword in one hand. His expression is a mix of shyness and determination, with large expressive eyes. Full body portrait, anime style, detailed character design." },
+  { name: "Willie", prompt: "A tall, rugged warrior-type man with broad shoulders and a muscular build. He has short, spiky hair and a rough, battle-hardened face with a small scar across his cheek. He wears weathered combat gear with practical armor pieces. His expression is fierce and protective, with a loyal and dependable aura. Full body portrait, anime style, detailed character design." },
+  { name: "Elena", prompt: "A striking woman in her late thirties with long, flowing silver hair that cascades down her back. She has sharp, intelligent eyes and a calm, composed smile that commands respect. She wears a sleek, dark formal outfit befitting a high-ranking intelligence bureau chief. Her expression blends warmth with authority, and she projects the aura of the strongest agent in the organization. Full body portrait, anime style, detailed character design." },
+  { name: "SebastianValerius", prompt: "A tall, commanding man with striking blue eyes and sharp features. He wears a long black coat over formal dark clothing, giving him a mysterious and authoritative presence. His hair is neat and dark, and his expression is always cool and analytical. He carries himself with the dignity of a world-class enforcement agency leader, with a calm but piercing gaze. Full body portrait, anime style, detailed character design." },
+  { name: "Gareth", prompt: "A strong, silent man with a well-built physique and grey eyes that burn with quiet intensity. He has short, practical hair and a stern, unreadable expression. He wears dark tactical combat gear suited for high-risk missions. His posture is always battle-ready, and he projects an aura of absolute loyalty, dependability, and formidable martial prowess. Full body portrait, anime style, detailed character design." },
+  { name: "MarinaBobbin", prompt: "A coldly beautiful woman in her late thirties with black hair tied back in a severe, strict style. She wears a military-inspired formal suit in dark colors, perfectly tailored to accentuate her authoritative figure. Her eyes are sharp and calculating, and her expression is one of iron-willed determination and ambition. She holds herself like a powerful political leader, exuding absolute confidence. Full body portrait, anime style, detailed character design." },
+  { name: "CastinaTempest", prompt: "An elegant and regal woman with blonde hair styled in a sophisticated updo. She wears a striking crimson dress that commands attention, with jewelry befitting a head of state. Her expression is graceful yet firm, with bright, intelligent eyes that show both warmth and political acumen. She radiates the confidence of a groundbreaking female leader. Full body portrait, anime style, detailed character design." },
+  { name: "Izumi", prompt: "A mysterious futanari figure with an intense, dangerous gaze and medium-length dark hair. She wears a sleek black longcoat that hints at her dual-gender nature, with a seductive yet predatory expression. Her personality shifts between a woman's sweet, alluring smile and a man's cruel, aggressive grin. She is the true leader of Alpha Venom, exuding raw power and manipulative charisma. Full body portrait, anime style, detailed character design." },
+  { name: "Leon", prompt: "A cunning and dangerous man with sharp features and an unsettling smirk. He has medium-length hair that falls across his face, partially obscuring one eye. His body can transform into dark slime, dissolving and reforming at will. He wears a dark, stylish outfit with silver snake emblems, suggesting his allegiance to a criminal syndicate. His expression is predatory and confident. Full body portrait, anime style, detailed character design." },
+  { name: "Vivietta", prompt: "A beautiful and refined woman of noble heritage with soft, elegant features and a strong-willed expression. She wears sophisticated clothing befitting aristocracy. Despite her composed exterior, she has a resilient spirit that refuses to break even under extreme pressure from supernatural enemies. Her posture is dignified even in captivity, showing unwavering inner strength. Full body portrait, anime style, detailed character design." },
+  { name: "LeviliaSerpentina", prompt: "A voluptuous and alluring woman with large curves, long flowing silver hair, and mesmerizing purple eyes that glow with psychic power. She wears a tight red china dress with high slits. She is a hyper-powerful esper who controls slime tentacles with telekinesis alone, never needing to lift a finger. Her expression is wickedly playful and confident, radiating the dangerous charm of a Silver Venom executive. Full body portrait, anime style, detailed character design." },
+  { name: "Miyushari", prompt: "A cheerful and energetic young woman with bright chestnut-brown hair tied in a ponytail and expressive, friendly eyes. She wears a glossy black lam\u00e9 bodysuit that is revealing at the navel and thighs, with a cropped jacket over it. Her expression shows both warmth and keen intelligence. She is a brilliant strategist and debater who uses clairvoyance abilities in combat. Full body portrait, anime style, detailed character design." },
+  { name: "Fariel", prompt: "A sincere and earnest young woman with shoulder-length black hair and gentle eyes behind thin-framed glasses. She wears a practical, military-style outfit suited for a world-class enforcement operative. Her expression is serious and focused, showing analytical intelligence. She carries herself with quiet confidence and loyalty. Full body portrait, anime style, detailed character design." },
+  { name: "AinaVonRiesfeld", prompt: "A dignified and disciplined young woman with serious, determined eyes and neatly styled hair. She wears gleaming silver armor over a formal suit, giving her the appearance of a noble knight. Her expression is resolute and duty-bound, with the bearing of someone deeply committed to protecting her homeland. She stands tall and proud. Full body portrait, anime style, detailed character design." },
+  { name: "FredericGabby", prompt: "A stylish and confident man with a relaxed but capable air. He wears a high-fashion coat over smart casual clothing, with an easy smile that hides sharp intelligence. His hair is well-groomed, and his posture is casual yet alert. He projects the aura of a skilled operative who combines charm with deadly competence. Full body portrait, anime style, detailed character design." },
+  { name: "SheronJeras", prompt: "A calm and composed operative with striking white hair blowing in the wind and perceptive features. He has a gentle but sharp expression, with eyes that read situations instantly. He wears practical, understated tactical clothing. His demeanor is quiet and observant, projecting calm strength and reliability as a field leader who kneels to assess situations before acting. Full body portrait, anime style, detailed character design." },
+  { name: "Ilmise", prompt: "A mysterious and quiet young woman with shoulder-length black hair and an unreadable expression. She wears practical combat gear. Despite her unassuming appearance, she is a skilled operative who carries specialized devices and magical artifacts. Her calm, emotionless demeanor hides sharp instincts and quiet competence. Full body portrait, anime style, detailed character design." },
+  { name: "WhiteNoise", prompt: "A mysterious figure with white hair and a silent, unsettling presence. They rarely speak, communicating through subtle gestures. They wear dark tactical clothing with minimal distinguishing features. Their expression is unreadable and serene, projecting an aura of someone who exists between dimensions. They are associated with distortion and disruption abilities. Full body portrait, anime style, detailed character design." },
+  { name: "Wadrina", prompt: "A tough, experienced woman warrior with half of her body cybernetically enhanced. She has mechanical red glowing eyes and reinforced combat prosthetics. She wears heavy combat gear adapted for harsh environments. Her expression is mechanically calm and analytical, as she constantly scans her surroundings. She projects the hardened resolve of a cyborg operative. Full body portrait, anime style, detailed character design." },
+  { name: "NinigisKaras", prompt: "A silent and mysterious operative who wears a distinctive mask covering their face. Their build is lean and athletic, suited for stealth missions. They wear dark, tactical clothing with minimal distinguishing features, designed for anonymity. Even behind the mask, their body language communicates focus and lethal efficiency. They project an aura of dangerous silence. Full body portrait, anime style, detailed character design." },
+  { name: "Yeshibato", prompt: "A cheerful and laid-back young man with bleached brown hair that he nervously plays with using his fingers. He has an easygoing smile and a relaxed posture. He wears casual, practical clothing. His expression can shift from upbeat to nervous in tense situations, but he remains loyal and dependable despite his anxiety. Full body portrait, anime style, detailed character design." },
+  { name: "AzazelHectopus", prompt: "An imposing man in his late fifties with a stern, deeply lined face and a military bearing. He has short, neat grey hair and cold, authoritarian eyes. He wears a formal military-style leader's uniform with decorations and insignia of high rank. His build is large and powerful, and his expression projects conservative strength as the leader of the Vermilion faction. Full body portrait, anime style, detailed character design." },
+  { name: "Piatrino", prompt: "A young woman with glasses and distinctive large hips, wearing a blue china dress with black spats underneath. Her hair is dark and styled in a neat bob cut. Her expression is a mix of earnestness and slight nervousness, with intelligent eyes behind her glasses. Despite her somewhat shy demeanor, she carries herself with underlying determination and keen analytical skills. Full body portrait, anime style, detailed character design." },
+  { name: "AikeLopez", prompt: "A young and ambitious male leader with sharp features and an intense gaze. He has neatly styled hair and a calculating, intelligent expression. He wears formal but modern political attire suggesting a tech-savvy government leader. His eyes are bright with ambition and strategic thinking. He projects the aura of a rising political star who plays the long game. Full body portrait, anime style, detailed character design." },
+  { name: "ReidKakizaki", prompt: "A rugged, battle-hardened man with a rough, muscular build and a blunt, no-nonsense expression. He has short, practical hair and sharp eyes that have seen many conflicts. He wears a military uniform with heavy armor elements, suggesting a military-first governance philosophy. His posture is confrontational and powerful, projecting the strength of a military syndicate leader. Full body portrait, anime style, detailed character design." },
+  { name: "MikaelGabrieli", prompt: "A distinguished man with silver-rimmed glasses and a calm, analytical expression. He has well-groomed hair and the refined appearance of a corporate CEO. He wears an expensive, tailored suit in dark colors. His eyes are calculating and perceptive, always evaluating risks and opportunities. He projects the authority of someone who controls vast economic power as the head of Faruja Corporation. Full body portrait, anime style, detailed character design." },
+  { name: "Yonik", prompt: "A stern and disciplined military commander in middle age, wearing a formal military uniform with command insignia. He has a weathered face with an imposing presence, sharp eyes, and a rigid posture. His expression shows both authority and hidden vulnerability, suggesting a leader who bears heavy responsibility. He projects the image of a supreme military commander. Full body portrait, anime style, detailed character design." },
+  { name: "MasterVenom", prompt: "A tall, imposing, and terrifying figure whose presence radiates venom and menace. Their features are sharp and angular, with cold, calculating eyes that glow with malice. They wear dark, organic-looking armor with serpentine motifs in venom-green accents. Their expression is one of absolute authority and cruelty. They project the aura of the ultimate antagonist, the mastermind behind the Venom syndicate. Full body portrait, anime style, detailed character design." },
+  { name: "Goldilocks", prompt: "A flashy young woman with long golden blonde hair, wearing dark combat clothing with golden snake emblems. She has an arrogant, self-important expression with sharp, mocking eyes. Her hair is styled dramatically, and she carries herself with theatrical confidence. Her body can transform into slime form, shifting between human and liquid states. She projects the aura of an Alpha Venom executive. Full body portrait, anime style, detailed character design." },
+  { name: "Katarina", prompt: "A fierce and capable woman warrior with a strong, athletic build and determined eyes. She has long silver hair flowing dramatically and practical battle-ready features. She wears dark combat clothing with an erotic edge. Her expression is serious and cold, showing both discipline and cruelty as one of the top executives of Alpha Venom. Full body portrait, anime style, detailed character design." },
+  { name: "Bobristy", prompt: "A mysterious woman whose body is covered in thick black sludge and mud, making her true form difficult to discern. She is a specialist in liquid manipulation, able to control and weaponize the viscous substances covering her body. Her expression is menacing and determined. She projects the dark, dangerous aura of a Silver Venom veteran operative. Full body portrait, anime style, detailed character design." },
+  { name: "Gil", prompt: "A mysterious and dangerous man with a low, commanding voice and unsettling presence. He has the ability to create invisible force fields and manipulate spatial dimensions, locking enemies in place with invisible barriers. He wears dark tactical clothing. His expression is calm and menacing, projecting the terrifying aura of a spatial manipulation specialist for Alpha Venom. Full body portrait, anime style, detailed character design." },
+  { name: "Lastman", prompt: "A skinny but unnervingly persistent man with an obsessive, lecherous stare. He has messy, unkempt hair and constantly licks his lips. His clothes are dark and disheveled, suggesting a desperate criminal. His expression is a mix of depravity and cunning, with eyes that dart around looking for targets. He is a notorious remnant of Silver Venom known for perverted obsession. Full body portrait, anime style, detailed character design." },
+  { name: "AJ", prompt: "A striking figure with short, boyish black hair and a feminine, slender body. They wear a tight black shirt, bright blue bikini brief shorts, and a short mantle over their shoulders. Their appearance is ambiguously beautiful, combining feminine elegance with a notable masculine feature. Their expression is seductive and playful with an erotic undertone. A Silver Venom member known as Alfred Juice. Full body portrait, anime style, detailed character design." },
+  { name: "SlimeWoman", prompt: "A semi-transparent, humanoid figure made of glossy blue slime shaped like a beautiful woman. Her form ripples and shifts with viscous, fluid movement. Small tendrils and worm-like appendages extend from her body. She has an alien, hypnotic beauty with luminous eyes floating within the translucent liquid surface. She projects an otherworldly, unsettling presence as a living slime organism. Full body portrait, anime style, detailed character design." },
+  { name: "Temirtaron", prompt: "A distinguished physicist and philosopher with an intense, visionary expression. He has medium-length hair and deep, contemplative eyes that see beyond ordinary dimensions. He wears scholarly robes with mathematical symbols and cosmic patterns woven into the fabric. His expression is passionate and intellectual, suggesting a mind that grapples with the nature of reality itself and the architect of the Dimension Pyramid. Full body portrait, anime style, detailed character design." },
+  { name: "AriaSol", prompt: "An elegant and diplomatic woman with warm, intelligent eyes and gracefully styled hair. She wears refined but practical clothing that suggests both political acumen and cultural sophistication. Her expression is serene and conciliatory, with the wisdom of someone who bridges divides between nations. She carries herself with the grace of a natural mediator and leader who envisions planetary federation. Full body portrait, anime style, detailed character design." },
+  { name: "Zena", prompt: "A striking and resourceful woman with sharp, calculating eyes and a business-minded expression. She wears elegant clothing suited for interstellar trade, with technological accessories. She is a female merchant who handles the trade of exploitation biotechnology on Eros-7. Her expression is calm and knowing, with the shrewdness of a successful trader navigating complex political landscapes. Full body portrait, anime style, detailed character design." },
+  { name: "LilithVane", prompt: "A commanding and formidable woman with a regal, imperious bearing. She has long, dark hair and sharp, calculating eyes that show no mercy. She wears elegant but dark clothing with organic, bio-engineered elements, suggesting mastery over living technology. Her expression is one of absolute authority and cold pragmatism, befitting the founder of a matriarchal society on Eros-7. Full body portrait, anime style, detailed character design." },
+  { name: "SylviaCrow", prompt: "A powerful woman with an intense, psychic presence. She has sharp, perceptive eyes that seem to glow with telepathic energy. Her hair is dramatic and distinctive. She wears a mix of scientific and mystical attire, blending technology with bio-synthesis. Her expression is focused and commanding. She gained esper abilities through mutated exploitation organisms and developed suppression agents to control bio-crises. Full body portrait, anime style, detailed character design." },
+  { name: "KarlaVelm", prompt: "A stern and calculating woman leader with a commanding presence. She has sharp features and cold, authoritarian eyes. She wears dark formal attire with military elements. As the leader who built the Squeeze Abyss, a 560-story underground exploitation facility, she projects the ruthless pragmatism of a military-industrial mastermind who weaponized bio-energy technology. Full body portrait, anime style, detailed character design." },
+  { name: "Garo", prompt: "A tough, battle-hardened underground resistance leader with a large, imposing build and a fearless expression. He has short, spiky hair and fierce, determined eyes. He wears heavy combat gear adapted for the harsh conditions of the Eros-7 underground. His posture is aggressive and powerful, projecting raw physical strength and the resolve of a freedom fighter leading the Shadow Union. Full body portrait, anime style, detailed character design." },
+  { name: "AyakaRin", prompt: "A skilled and determined woman with a focused, strategic expression. She has sharp, intelligent eyes and neatly maintained dark hair. She wears tactical clothing suited for intervention missions in hostile environments. Her expression shows resolve and a deep sense of justice, as the revolutionary who allied with Garo and Zena to reform the matriarchal society of Eros-7, becoming a symbol of gender equality. Full body portrait, anime style, detailed character design." },
+  { name: "CasteriaGrenvelt", prompt: "A striking young girl with long blonde hair and bright yellow eyes, appearing younger than her actual age. She wears a simple black dress that contrasts with her regal bearing. Despite her loli-like appearance, her expression carries wisdom and confidence far beyond her years. She has the ability to levitate slightly, with her feet floating above the ground. A mysterious esper with vast powers. Full body portrait, anime style, detailed character design." },
+  { name: "SitraCeles", prompt: "A formidable 28-year-old emperor with a healthy, muscular physique and smooth, attractive skin that captivates court ladies. He has a gentle, kind, and submissive personality with strong masochistic tendencies. He wears the elaborate robes of the Vulcan Empire. Despite his powerful body and imperial authority, he prefers to be dominated by his wife Elegia, finding his ultimate pleasure in observation and submission. Full body portrait, anime style, detailed character design." },
+  { name: "Myu", prompt: "A mysterious and ethereal young girl with a soft, otherworldly appearance. She has unusual colored hair that seems to move on its own and large, expressive eyes. She wears a simple, cute outfit that contrasts with the dark world around her. Her expression is a mix of innocence and hidden depth, suggesting someone who observes more than she reveals. She is linked to ancient dimensional technology. Full body portrait, anime style, detailed character design." },
+  { name: "Jun", prompt: "A young person with a friendly, approachable expression and practical clothing suited for everyday life. They have neat, well-kept hair and observant eyes that miss little. They wear casual but clean attire suggesting an ordinary background. Their expression is warm and curious, with a hint of underlying strength that emerges when needed. They are connected to the slime-related incidents. Full body portrait, anime style, detailed character design." }
+];
+
+const grid = document.getElementById('cardGrid');
+const searchInput = document.getElementById('searchInput');
+const countInfo = document.getElementById('countInfo');
+const toast = document.getElementById('toast');
+
+function renderCards(data) {
+  grid.innerHTML = '';
+  data.forEach((char, index) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.name = char.name.toLowerCase();
+    card.innerHTML = `
+      <div class="card-header">
+        <h2>${char.name}</h2>
+        <button class="copy-btn" data-index="${index}">Copy</button>
+      </div>
+      <div class="card-body">
+        <div class="prompt-text" data-index="${index}">${char.prompt}</div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => copyPrompt(btn.dataset.index, btn));
+  });
+
+  document.querySelectorAll('.prompt-text').forEach(el => {
+    el.addEventListener('click', () => copyPrompt(el.dataset.index));
+  });
+}
+
+function copyPrompt(index, btnElement) {
+  const text = characters[index].prompt;
+  const name = characters[index].name;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast(`Copied: ${name}`);
+    if (btnElement) {
+      btnElement.textContent = 'Copied!';
+      btnElement.classList.add('copied');
+      setTimeout(() => {
+        btnElement.textContent = 'Copy';
+        btnElement.classList.remove('copied');
+      }, 2000);
+    }
+  });
+}
+
+function copyAllVisible() {
+  const visibleCards = document.querySelectorAll('.card:not(.hidden)');
+  const texts = [];
+  visibleCards.forEach(card => {
+    const idx = parseInt(card.querySelector('.copy-btn').dataset.index);
+    texts.push(`## ${characters[idx].name}\n${characters[idx].prompt}`);
+  });
+  navigator.clipboard.writeText(texts.join('\n\n')).then(() => {
+    showToast(`Copied ${visibleCards.length} prompts!`);
+  });
+}
+
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+searchInput.addEventListener('input', () => {
+  const query = searchInput.value.toLowerCase().trim();
+  const cards = document.querySelectorAll('.card');
+  let count = 0;
+  cards.forEach(card => {
+    const name = card.dataset.name;
+    const prompt = card.querySelector('.prompt-text').textContent.toLowerCase();
+    if (!query || name.includes(query) || prompt.includes(query)) {
+      card.classList.remove('hidden');
+      count++;
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+  countInfo.textContent = `${count} / ${characters.length} characters`;
+});
+
+document.getElementById('copyAllBtn').addEventListener('click', copyAllVisible);
+
+renderCards(characters);
+</script>
+</body>
+</html>
