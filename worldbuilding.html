@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>World Building Prompts</title>
+  <style>
+    :root {
+      --bg: #0f0f13;
+      --card: #1a1a24;
+      --border: #2a2a3a;
+      --accent: #6c5ce7;
+      --accent-hover: #7d6ff0;
+      --text: #e0e0e8;
+      --text-dim: #8888a0;
+      --success: #00d2a0;
+      --search-bg: #16161e;
+      --geography: #4fc3f7;
+      --organization: #ffb74d;
+      --technology: #ce93d8;
+      --history: #ef5350;
+      --terminology: #66bb6a;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      padding: 40px 20px 30px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #6c5ce7, #a29bfe, #74b9ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      color: var(--text-dim);
+      font-size: 0.95rem;
+    }
+
+    .controls {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 20px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 250px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 12px 16px 12px 44px;
+      background: var(--search-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-box input:focus { border-color: var(--accent); }
+
+    .search-box svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      color: var(--text-dim);
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .filter-btn {
+      padding: 8px 16px;
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+    .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .filter-btn.active[data-g="GEOGRAPHY"] { background: var(--geography); border-color: var(--geography); }
+    .filter-btn.active[data-g="ORGANIZATION"] { background: var(--organization); border-color: var(--organization); }
+    .filter-btn.active[data-g="TECHNOLOGY"] { background: var(--technology); border-color: var(--technology); }
+    .filter-btn.active[data-g="HISTORY"] { background: var(--history); border-color: var(--history); }
+    .filter-btn.active[data-g="TERMINOLOGY"] { background: var(--terminology); border-color: var(--terminology); }
+
+    .copy-all-btn {
+      padding: 12px 24px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    .copy-all-btn:hover { background: var(--accent-hover); }
+
+    .count-info {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+
+    .grid {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 20px 60px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .card:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .card.hidden { display: none; }
+
+    .card-header {
+      padding: 16px 16px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-header h2 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #a29bfe;
+    }
+
+    .cat-tag {
+      padding: 2px 10px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .cat-tag.GEOGRAPHY { background: rgba(79,195,247,0.15); color: var(--geography); }
+    .cat-tag.ORGANIZATION { background: rgba(255,183,77,0.15); color: var(--organization); }
+    .cat-tag.TECHNOLOGY { background: rgba(206,147,216,0.15); color: var(--technology); }
+    .cat-tag.HISTORY { background: rgba(239,83,80,0.15); color: var(--history); }
+    .cat-tag.TERMINOLOGY { background: rgba(102,187,106,0.15); color: var(--terminology); }
+
+    .copy-btn {
+      padding: 6px 14px;
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover { background: var(--accent); color: white; }
+    .copy-btn.copied { background: var(--success); border-color: var(--success); color: white; }
+
+    .card-body { padding: 0 16px 16px; }
+
+    .prompt-text {
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: #c0c0d0;
+      word-break: break-word;
+      white-space: pre-wrap;
+      cursor: text;
+      user-select: all;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--success);
+      color: #0f0f13;
+      padding: 12px 28px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 768px) {
+      header h1 { font-size: 1.6rem; }
+      .grid { grid-template-columns: 1fr; }
+      .controls { flex-direction: column; }
+      .search-box { width: 100%; }
+      .filter-group { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>World Building Prompts</h1>
+  <p>151 world-building symbol prompts &mdash; Click a prompt or use the copy button</p>
+</header>
+
+<div class="controls">
+  <div class="search-box">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input type="text" id="searchInput" placeholder="Search world items...">
+  </div>
+  <div class="filter-group">
+    <button class="filter-btn active" data-g="ALL">ALL</button>
+    <button class="filter-btn" data-g="GEOGRAPHY">GEOGRAPHY</button>
+    <button class="filter-btn" data-g="ORGANIZATION">ORGANIZATION</button>
+    <button class="filter-btn" data-g="TECHNOLOGY">TECHNOLOGY</button>
+    <button class="filter-btn" data-g="HISTORY">HISTORY</button>
+    <button class="filter-btn" data-g="TERMINOLOGY">TERMINOLOGY</button>
+  </div>
+  <button class="copy-all-btn" id="copyAllBtn">Copy All Visible</button>
+  <span class="count-info" id="countInfo">151 items</span>
+</div>
+
+<div class="grid" id="cardGrid"></div>
+
+<div class="toast" id="toast"></div>
+
+<nav style="text-align:center;padding:16px;background:var(--card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <a href="index.html" style="color:var(--accent);text-decoration:none;font-weight:600;margin:0 16px;">Characters PFP (60)</a>
+  <span style="color:var(--border);">|</span>
+  <a href="worldbuilding.html" style="color:var(--accent);text-decoration:none;font-weight:600;margin:0 16px;">World Building (151)</a>
+</nav>
+
+<footer>
+  <p>E16 Star System &mdash; World-Building Illustration Prompts</p>
+</footer>
+
+<script>
+const worldItems = [
+  // ── GEOGRAPHY (39) ──
+  { name: "E16BinarySystem", category: "GEOGRAPHY", prompt: "A binary star system in deep space, two stars — a larger orange K-type primary star (Ea16) and a smaller red M-type companion star (Eb16) orbiting each other at close distance, surrounded by a halo of dim gas and ancient debris, seven small planets visible in orbit, set against the vast dark backdrop of the Sombrero Galaxy (M104)." },
+  { name: "Ea16", category: "GEOGRAPHY", prompt: "A large orange K2 spectral type star with a warm golden glow, surface showing subtle sunspot patterns and coronal mass ejections, surrounded by a faint habitable zone ring where a blue-green planet orbits, the primary anchor of the E16 binary system." },
+  { name: "Eb16", category: "GEOGRAPHY", prompt: "A small dim red M3 spectral type dwarf star with a deep crimson glow, surface showing turbulent convection patterns, orbiting its larger companion at 0.8 AU distance, casting faint reddish light across the binary system." },
+  { name: "SymphonyOfStars", category: "GEOGRAPHY", prompt: "A breathtaking Earth-like planet with swirling blue oceans, green continents, and white cloud patterns, floating in the habitable zone between two suns of different colors (orange and red), mega-city lights visible on the night side, the crown jewel of the E16 system." },
+  { name: "Eros7", category: "GEOGRAPHY", prompt: "A harsh rocky planet with thin blue-tinted atmosphere, surface scarred by electromagnetic storms with visible lightning, dark jagged mountain ranges and cratered terrain, no visible water, orbiting at the outer edge of the E16 system, bathed in dim reddish light." },
+  { name: "PlanetBiblio", category: "GEOGRAPHY", prompt: "An academic paradise planet covered in vast crystalline library structures and university campuses, towers of knowledge rising from pristine landscapes, holographic data streams connecting buildings, the intellectual center of the star system where scholars from across the galaxy gather." },
+  { name: "PlanetSolaris", category: "GEOGRAPHY", prompt: "A devastated desert planet with cracked parched earth, ruined underground cities visible through massive fissures, scorching heat waves distorting the air, remnants of a once-green world destroyed by war and dimensional energy abuse, scattered oasis points of dim light." },
+  { name: "M104Galaxy", category: "GEOGRAPHY", prompt: "The magnificent Sombrero Galaxy viewed from its edge, a brilliant white core surrounded by a thick dark dust lane and a glowing halo of ancient stars, the vast galactic home of the E16 binary system located somewhere in its outer halo region." },
+  { name: "NostalgiaColony", category: "GEOGRAPHY", prompt: "A small frontier colony on a rugged planet edge, simple modular habitats and refugee shelters arranged around a central plaza, a scarred landscape bearing marks of a devastating attack with crater-like blast wounds, the birthplace of the legendary hero Mina Eureka." },
+  { name: "CrescentRegion", category: "GEOGRAPHY", prompt: "A vast eastern continent shaped like a crescent moon on the planet Symphony of Stars, shown from orbit with diverse terrain including mountains, forests, and urban sprawl, the political heartland where major nations vie for control." },
+  { name: "Vermillion", category: "GEOGRAPHY", prompt: "A militaristic nation territory with imposing fortified cities, massive weapons installations and training grounds visible from above, harsh angular architecture in deep red and black, military banners and insignia throughout, the seat of Azazel Hectopus's conservative regime." },
+  { name: "BlueRose", category: "GEOGRAPHY", prompt: "An elegant coastal nation with beautiful blue-domed cities nestled between ocean cliffs and flower-covered hills, refined architecture blending technology and natural beauty, a symbol of diplomatic sophistication and cultural achievement." },
+  { name: "Miertenge", category: "GEOGRAPHY", prompt: "The most powerful dominion territory on Symphony of Stars, a sprawling urban megacomplex with towering government buildings, intelligence agency headquarters, and military installations, the seat of President Marina Bobbin's authority." },
+  { name: "Krossevia", category: "GEOGRAPHY", prompt: "A groundbreaking nation led by its first female leader Castina Tempest, elegant crimson-accented government buildings with modernist architecture, diplomatic halls and alliance banners, a symbol of progressive female political leadership." },
+  { name: "SSRange", category: "GEOGRAPHY", prompt: "A tech-savvy government territory with sleek modern infrastructure, digital networks visible as glowing data lines connecting towers, holographic billboards and advanced research facilities, the domain of the ambitious leader Aike Lopez." },
+  { name: "IronSyndicate", category: "GEOGRAPHY", prompt: "A military-first governance territory with heavy industrial complexes, weapon factories and barracks dominating the landscape, reinforced steel architecture, military training grounds stretching to the horizon, led by the gruff Reid Kakizaki." },
+  { name: "SUDOM", category: "GEOGRAPHY", prompt: "The Strongest Dominion (SUDOM) with the impenetrable Frederic Fortress, massive defensive walls and military installations, the most heavily fortified territory in the Crescent Region, a symbol of overwhelming military deterrence." },
+  { name: "FatimaFederation", category: "GEOGRAPHY", prompt: "A desert nation with grand sandstone government buildings and oasis cities, federated states connected by trade routes and caravan paths, Islamic-inspired architecture with geometric patterns and minarets, led by President Arif al-Fatima." },
+  { name: "StarkThreeNations", category: "GEOGRAPHY", prompt: "Three allied nations with distinct but complementary territories, industrial zones, military outposts, and resource-rich lands shown as a unified bloc on a strategic map, a formidable triple-alliance power in Crescent politics." },
+  { name: "NeonColosseum", category: "GEOGRAPHY", prompt: "A massive neon-lit arena stadium in Gigapolis, towering structure with holographic display screens and energy barrier walls, spotlights illuminating a vast combat ring where warriors in nano-armor battle for social advancement, the epicenter of E16's warrior culture." },
+  { name: "Gigapolis", category: "GEOGRAPHY", prompt: "A breathtaking megacity spanning an entire planet, towering skyscrapers reaching 2–3 kilometers high arranged in concentric rings, neon lights and holographic advertisements, flying vehicles between towers, the economic capital of the E16 system with a GDP of 14 quadrillion n-tokens." },
+  { name: "Chem", category: "GEOGRAPHY", prompt: "An industrial district within Gigapolis with chemical processing plants, research laboratories, and manufacturing facilities, pipelines and storage tanks connected by glowing conduits, steam and colored gases rising from refineries, the industrial backbone of corporate production." },
+  { name: "Abrivo", category: "GEOGRAPHY", prompt: "A commercial trade hub district with bustling marketplaces and exchange buildings, merchant vessels and cargo transports at docking platforms, diverse alien goods and technology on display, a cosmopolitan center of interstellar commerce." },
+  { name: "Troyane", category: "GEOGRAPHY", prompt: "An elegant residential and cultural district with refined architecture, art galleries and performance halls, tree-lined boulevards and peaceful parks, the sophisticated cultural heart of the nation." },
+  { name: "Ronve", category: "GEOGRAPHY", prompt: "A strategic border territory with fortified checkpoints, watchtowers and defensive walls, military patrols along contested boundaries, tension visible in the reinforced architecture and surveillance equipment." },
+  { name: "Poitiers", category: "GEOGRAPHY", prompt: "A historic old-town district with ancient stone buildings and classical architecture, cobblestone streets and monuments to past revolutions, a living museum of the E16 system's turbulent political history." },
+  { name: "Lille", category: "GEOGRAPHY", prompt: "A quiet academic suburb with university campuses, research libraries and student dormitories, peaceful tree-lined avenues and intellectual cafes, a center of learning and scholarly pursuit." },
+  { name: "Valoria", category: "GEOGRAPHY", prompt: "The home city of the legendary hero Jen, a grand city of 889-level warriors with ornate architecture, the Palace of Lumina rising above marble streets, an atmosphere of heroism and legendary martial tradition." },
+  { name: "Persepolis", category: "GEOGRAPHY", prompt: "An ancient ceremonial district with grand columned halls and monumental gates inspired by Persian architecture, vast courtyards used for official declarations and political ceremonies, a symbol of governance continuity." },
+  { name: "Selinopolis", category: "GEOGRAPHY", prompt: "A jewel-like city on Eros-7 with crystalline bio-luminescent architecture, buildings made from exploitation organism-derived materials that glow with soft organic light, the beautiful deceptive face of the matriarchal society." },
+  { name: "Evapolis", category: "GEOGRAPHY", prompt: "The capital city of the Evatron regime, dark imposing government complexes and Sigma Unit research facilities, surveillance networks and propaganda towers, the seat of the oppressive dominion that created Alpha Venom." },
+  { name: "Paraton", category: "GEOGRAPHY", prompt: "One of the oldest initial city circles formed during E6 First Prosperity, historic architecture blended with ancient technology, heritage buildings preserved alongside modern infrastructure, the foundational cradle of E16 civilization." },
+  { name: "Underground", category: "GEOGRAPHY", prompt: "The vast subterranean regions beneath Gigapolis where lower-caste citizens (A100–A155) live and work, dim metallic corridors and cramped habitation modules, industrial machinery and mining operations, the oppressed underbelly of the corporate state." },
+  { name: "NeonCraterPalace", category: "GEOGRAPHY", prompt: "A magnificent 1.2-kilometer-tall 150-story palace on Eros-7 built from bio-luminescent exploitation organism materials, glowing with ethereal organic light, a crystal dome crowning its summit, the ultimate symbol of matriarchal power and female authority." },
+  { name: "SqueezeAbyss", category: "GEOGRAPHY", prompt: "A terrifying 560-story underground exploitation facility on Eros-7, a descending pit of bioreactor chambers and energy extraction cells, dim red emergency lighting and slime-coated walls, the darkest manifestation of matriarchal oppression." },
+  { name: "Undergrid", category: "GEOGRAPHY", prompt: "The deepest underground network beneath Eros-7 where the Shadow Union resistance operates secretly, hidden tunnels and makeshift meeting chambers behind bio-reactor walls, flickering torches and hand-drawn resistance symbols, the birthplace of male liberation." },
+  { name: "CentralTower", category: "GEOGRAPHY", prompt: "The towering administrative headquarters of Corporatumpublica in central Gigapolis, a massive spire of dark glass and steel housing government offices and A-Registry management, the nerve center of the corporate state's control." },
+  { name: "OasisHouse", category: "GEOGRAPHY", prompt: "A hidden sanctuary and resistance meeting point, a small warm building surrounded by water and greenery in an otherwise harsh environment, a beacon of hope and secret planning for those fighting against oppression." },
+  { name: "LorentzoUniversity", category: "GEOGRAPHY", prompt: "The prestigious international university on Planet Biblio, grand crystalline halls and advanced research laboratories, students from across the galaxy studying AI, dimensional theory, and civilization prediction models, the intellectual crown of the star system." },
+
+  // ── ORGANIZATION (38) ──
+  { name: "AURALIS", category: "ORGANIZATION", prompt: "A legendary elite hero squad with two generations — the first led by Kate Patton and Lillie Ardent, the second expanded during the Celia Golden Age, their symbol showing interlocking crescent moon and star motifs in silver and gold." },
+  { name: "ZAMLT", category: "ORGANIZATION", prompt: "A massive mega-corporate conglomerate of over 100 million enterprises controlling 95% of all transactions in Gigapolis, their logo a stark black monolith with red circuit patterns, the ultimate symbol of corporate totalitarianism." },
+  { name: "NeoClanAlliance", category: "ORGANIZATION", prompt: "A decentralized governance movement advocating for regional autonomy and community self-rule, their banner showing interconnected clan nodes in a network pattern against a green background, born from Alpha Kane's liberation of Gigapolis." },
+  { name: "UECO", category: "ORGANIZATION", prompt: "A multi-species ethnic coalition representing the three founding immigrant groups — Fendranese (Nordic-tech), Archean (Asian-adaptive), and Polonpolo (Oceanic-cultural), their emblem showing three interlocking rings in blue, gold, and teal." },
+  { name: "ShadowRebellion", category: "ORGANIZATION", prompt: "An underground resistance organization of lower-caste citizens fighting against corporate oppression, their hidden symbol a broken chain link illuminated by a dim red flame, using Warrior Decision Battles to spread anti-establishment messages." },
+  { name: "ARegistry", category: "ORGANIZATION", prompt: "A rigid 155-tier citizenship classification system managed by quantum ID chips, visualized as a towering vertical hierarchy from A1 (golden apex) to A155 (dark base), controlling every aspect of citizens' lives from movement to healthcare." },
+  { name: "NToken", category: "ORGANIZATION", prompt: "The quantum-encrypted digital currency that powers the entire E16 interstellar economy, represented as glowing hexagonal tokens flowing through digital networks, the lifeblood of trade across M104 Galaxy." },
+  { name: "SilverVenom", category: "ORGANIZATION", prompt: "A criminal organization born from the remnants of Evatron's Sigma Unit after its collapse in E475, their mark a silver serpent coiling around a broken vial of green venom, specializing in mind control and bioweapon technology." },
+  { name: "AlphaVenom", category: "ORGANIZATION", prompt: "The most dangerous criminal syndicate in the E16 system, evolved from Sigma Unit (E420), their emblem a pitch-black serpent with venomous fangs glowing green, led by the dual-personality futanari Izumi, controlling five powerful executives." },
+  { name: "GoldenVenom", category: "ORGANIZATION", prompt: "A splinter faction of the Venom syndicate operating in the western continent, their symbol a golden serpent with jewel-encrusted scales, controlling different territories and criminal operations from their Silver Venom origins." },
+  { name: "BogdasJavelin", category: "ORGANIZATION", prompt: "An elite world-class enforcement agency and special forces unit, their insignia a silver javelin piercing a dark shield, led by the blue-eyed Sebastian Valerius with the four strongest operatives including Gareth." },
+  { name: "V7", category: "ORGANIZATION", prompt: "The Vital Seven — a seven-nation coalition alliance with a bold red logo, the new world order founded to counter Alpha Venom, uniting Crescent nations, Fatima Federation, Blue Rose, Faruja Company, and others under a unified defense pact." },
+  { name: "TrinityAlliance", category: "ORGANIZATION", prompt: "A temporary three-nation military alliance (technology, military, population) formed to counter the V7 coalition's dominance, their banner showing three interlocking triangles in steel blue representing their combined strength." },
+  { name: "FarujaCompany", category: "ORGANIZATION", prompt: "A powerful megacorporation led by CEO Mikael Gabrieli with silver-rimmed glasses, their logo an elegant 'F' monogram in dark blue, controlling vast economic power and trade networks across the Crescent Region." },
+  { name: "Evatron", category: "ORGANIZATION", prompt: "A former dominion regime that created the secret Sigma Unit (E420) for mind control and bioengineering, their dark banner showing a mechanized eye over chains, collapsed in E475 but whose legacy spawned the Venom syndicates." },
+  { name: "Teclosus", category: "ORGANIZATION", prompt: "A predecessor military regime to the Evatron, descended from the Birds Empire's Phalanx military clique, their ancient standard showing a crossed sword and gear, the original authoritarian military state of the E16 system." },
+  { name: "CorporatumPublica", category: "ORGANIZATION", prompt: "The corporate state system where enterprises govern politics, economy and society, visualized as a pyramid of corporate towers with the largest at top, the foundational governance model of Gigapolis established after the Maastricht Revolution." },
+  { name: "ShadowUnion", category: "ORGANIZATION", prompt: "A secret male resistance society on Eros-7 fighting against matriarchal oppression, their hidden emblem a broken shackle chain with a male fist rising from darkness, operating from the underground tunnels of the Abyss Chamber." },
+  { name: "MaleDirectorate", category: "ORGANIZATION", prompt: "The male management bureau on Eros-7 that controls male citizens as energy resources, their clinical insignia showing a male silhouette inside a containment hexagon, enforcing exploitation sessions and labor quotas." },
+  { name: "MatricalCouncil", category: "ORGANIZATION", prompt: "The supreme female governing body of Eros-7's matriarchal society, their authority symbol a throne of bio-luminescent crystal surrounded by serpent motifs, controlling the Sperm Registry and all exploitation technology." },
+  { name: "MatricalReformMovement", category: "ORGANIZATION", prompt: "A progressive movement on Eros-7 advocating for gender equality and the abolition of exploitation sessions, their banner showing a balanced scale with male and female symbols in harmony, led by Ayaka Rin, Garo, and Zena." },
+  { name: "HeroAgency", category: "ORGANIZATION", prompt: "An elite warrior organization that deploys heroes like Ayaka Rin across the E16 system, their emblem a shield with a star burst, warriors equipped with advanced technology including the famous Bikini Barrier." },
+  { name: "GalacticConsortium", category: "ORGANIZATION", prompt: "The unified galactic governance body established at E500 to maintain peace across the star system, their grand seal showing multiple planetary bodies connected by light bridges under a unified crown." },
+  { name: "TempleOfHorizon", category: "ORGANIZATION", prompt: "A massive techno-religious temple in Gigapolis built during the Tech Enlightenment Age, a grand dome housing a quantum computing core where followers connect to the Dimension Horizon to experience higher dimensions as a sacred ritual." },
+  { name: "SigmaUnit", category: "ORGANIZATION", prompt: "A top-secret Evatron special unit (E420) specializing in mind control and bioweapon technology, their dark emblem a Greek sigma symbol fused with a serpent and mechanical eye, the origin of all Venom syndicate organizations." },
+  { name: "TerianRebels", category: "ORGANIZATION", prompt: "A resistance movement led by Erios Wald carrying on the legacy of Seria against the Evatron regime, their banner showing a phoenix rising from broken chains, Erios was captured and publicly executed in E470." },
+  { name: "LombardiaEmpire", category: "ORGANIZATION", prompt: "A vast imperial power during the Pax Lombardica era (E205–E278), their imperial standard showing a crowned eagle over a laurel wreath, controlling the greatest corporate prosperity the E16 system had ever seen before their gradual decline." },
+  { name: "SextasUnion", category: "ORGANIZATION", prompt: "An interstellar rival power from the Sextans constellation that fought the Merdia War against the Lombardia Empire over rare earth resources, their banner showing six pointed stars in deep crimson." },
+  { name: "ClanForum", category: "ORGANIZATION", prompt: "A decentralized governance body representing local communities and regional clans, their symbol showing a circular council of diverse figures holding hands, advocating for distributed governance against centralized corporate control." },
+  { name: "VerlitFamily", category: "ORGANIZATION", prompt: "An ancient bloodline with hereditary sorcery connected to dark magical traditions on Eros-7, their family crest showing intertwined serpents around an arcane eye, passing down magical knowledge through generations." },
+  { name: "Phalanx", category: "ORGANIZATION", prompt: "The original military clique of the Birds Empire that evolved into the Teclosus regime, their ancient war banner showing an impenetrable shield wall of armored soldiers with spears, the first authoritarian military force in E16 history." },
+  { name: "IrisNetwork", category: "ORGANIZATION", prompt: "A vast intelligence-gathering and operational network managed by Iris and her team across the E16 system, their emblem showing an all-seeing eye woven with fiber-optic threads, a web of informants and strategic assets spanning continents." },
+  { name: "MinaEurekasLegion", category: "ORGANIZATION", prompt: "The personal military force and loyal followers of the legendary hero Mina Eureka, their banner showing a phoenix with a broken chain, a symbol of resistance that inspired the GalacticConsortium and shaped the destiny of the E16 system." },
+  { name: "MaastrichtTreatyAlliance", category: "ORGANIZATION", prompt: "The alliance of corporate entities formed after the Maastricht Revolution to stabilize the new Corporatumpublica governance model, their seal showing a quill pen crossed with a corporate tower, the framework that shaped modern E16 politics." },
+  { name: "SeriasOrder", category: "ORGANIZATION", prompt: "An ancient order founded by the legendary heroine Seria, carrying the torch of resistance through generations, their symbol a white rose growing through cracked stone, representing hope and perseverance against authoritarian rule." },
+  { name: "BiblioAcademy", category: "ORGANIZATION", prompt: "The supreme academic governing body of Planet Biblio overseeing all universities and research institutions, their emblem an open book with holographic equations rising from its pages, the guardians of knowledge and scientific progress in the E16 system." },
+  { name: "GigapolisStockExchange", category: "ORGANIZATION", prompt: "The central financial marketplace of Gigapolis where n-token derivatives and corporate shares are traded, a grand hall with towering holographic ticker displays and trading pits, the beating heart of the interstellar economy." },
+  { name: "VenomExecutives", category: "ORGANIZATION", prompt: "The five powerful executive commanders of Alpha Venom, each controlling a different territory and criminal specialization, their collective emblem a five-headed serpent with each head representing a different weapon of the syndicate." },
+
+  // ── TECHNOLOGY (36) ──
+  { name: "DimensionHorizon", category: "TECHNOLOGY", prompt: "A revolutionary technology using black hole theory to access higher-dimensional spaces, visualized as a shimmering vertical rift in space-time with quantum particles swirling around its edges, a portal to virtual multiverses and infinite possibilities." },
+  { name: "Persephone", category: "TECHNOLOGY", prompt: "The grand virtual multiverse platform designed by Timur Shah, visualized as an infinite digital cosmos with floating data-spheres and consciousness streams, where users upload their minds to escape physical constraints and explore simulated realities." },
+  { name: "LiminalForge", category: "TECHNOLOGY", prompt: "A mysterious artifact and technological system whose existence is a historical inevitability, represented as a glowing anvil-shaped quantum device that forges connections between dimensional layers, intimately tied to Mina Eureka's destiny." },
+  { name: "GenesisVault", category: "TECHNOLOGY", prompt: "A vast repository of civilization prediction models and historical data, originally Mina's 'Universe Rule Strategy Log,' visualized as an impenetrable crystalline vault containing holographic timelines and probability calculations." },
+  { name: "SpaceHole", category: "TECHNOLOGY", prompt: "A stable inter-dimensional portal created by Dimension Horizon technology, appearing as a perfectly circular rip in space-time with edges glowing blue-violet energy, allowing instantaneous travel between distant points in the galaxy." },
+  { name: "DimensionPyramid", category: "TECHNOLOGY", prompt: "A four-tier cosmic architecture theorized by Temirtaron — Tier Delta (AD2026 Earth), Tier Epsilon (E16 normal dimension), Tier Sigma (Persephone virtual universe), Tier Omega (four higher dimensions: Fun, Sasan, Horasm, Timur), shown as a glowing pyramid of stacked realities." },
+  { name: "ExploitCreature", category: "TECHNOLOGY", prompt: "Parasitic organisms from M104 Galaxy trade routes that absorb sexual energy and suppress male reproduction, visualized as grotesque translucent slug-like creatures with circular mouths and tendril appendages, bioluminescent in eerie purple and green." },
+  { name: "Apolonium", category: "TECHNOLOGY", prompt: "A mysterious substance or technology related to the Apollon-Dominion War era, represented as radiating crystalline energy nodes in deep crimson, a weapon or energy source from the devastating interplanetary conflict." },
+  { name: "TemporalBroadcast", category: "TECHNOLOGY", prompt: "A technology for transmitting signals across time and dimensional barriers, visualized as concentric temporal rings expanding outward from a broadcast tower, messages reaching across eras and realities." },
+  { name: "QualiaCore", category: "TECHNOLOGY", prompt: "The essential technology that digitizes emotions and consciousness for the Primary Field virtual universe, shown as a glowing neural network core pulsing with warm human emotions rendered as colored light streams." },
+  { name: "PrimaryField", category: "TECHNOLOGY", prompt: "The evolved virtual multiverse platform rebuilt by Temirtaron from Persephone's foundation, a vast digital landscape of floating islands connected by light bridges where 80% of citizens live virtual lives." },
+  { name: "QuantumFinanceCore", category: "TECHNOLOGY", prompt: "The centralized n-token economic management system operated by ZAMLT, a massive quantum computer core wrapped in encryption layers, processing 95% of all financial transactions in Gigapolis." },
+  { name: "QuantumBiobank", category: "TECHNOLOGY", prompt: "A highly secure genetic data storage facility connected to the Sperm Registry on Eros-7, visualized as rows of glowing cryogenic containment units with quantum-encrypted DNA data streams, exclusively controlled by the Matrical Council." },
+  { name: "NanocellImplant", category: "TECHNOLOGY", prompt: "A bio-engineered device implanted in citizens for radiation resistance, longevity, and Primary Field connection, shown as a microscopic mesh of nanomachines integrated into human tissue, glowing softly beneath the skin." },
+  { name: "NanohackingTech", category: "TECHNOLOGY", prompt: "Underground techniques for illegally accessing and manipulating corporate systems and nano-implants, visualized as a hacker's interface showing code breaking through quantum encryption barriers, the weapon of the Shadow Rebellion." },
+  { name: "ExploitTentacle", category: "TECHNOLOGY", prompt: "Genetically modified tentacle-type exploitation creatures that directly extract sexual energy, long purple translucent appendages with suction capabilities, used in Eros-7's bioreactors for energy generation." },
+  { name: "ExploitLeech", category: "TECHNOLOGY", prompt: "Genetically enhanced leech organisms that extract energy with 80% greater efficiency, dark segmented worm-like creatures that attach to hosts, developed through bioengineering by Maria Forhaus." },
+  { name: "ExploitBacteria", category: "TECHNOLOGY", prompt: "Microscopic exploitation bacteria designed for long-term low-level energy extraction, shown as a cloud of bioluminescent microorganisms that slowly drain energy from environments, the most subtle form of exploitation technology." },
+  { name: "ExploitPlasmaShot", category: "TECHNOLOGY", prompt: "A devastating bioweapon condensing exploitation organism energy into concentrated plasma projectiles, glowing green bio-energy bolts fired from weaponized bio-cannons, Eros-7's most feared military export." },
+  { name: "Nanomedicine", category: "TECHNOLOGY", prompt: "Advanced medical technology using nanomachines for genetic repair and disease treatment, visualized as swarms of tiny glowing robots repairing cellular damage at the molecular level, capable of treating the deadly Cola Plague." },
+  { name: "NanofiberBoots", category: "TECHNOLOGY", prompt: "Advanced combat footwear with nanofiber construction providing enhanced agility and dimensional stability, shown as sleek boots with glowing energy threads woven through the fabric, standard equipment for elite warriors." },
+  { name: "EnhancedGloves", category: "TECHNOLOGY", prompt: "Combat gloves with embedded technology for enhanced grip, energy manipulation, and weapon interfacing, glowing circuit patterns on the surface, used by enforcement agents and warriors in close combat." },
+  { name: "PlasmaCannon", category: "TECHNOLOGY", prompt: "A powerful energy weapon firing concentrated plasma bolts, a sleek barrel design with glowing cyan energy coils, standard armament for elite military forces and enforcement agency operatives." },
+  { name: "BikiniBarrier", category: "TECHNOLOGY", prompt: "Ayaka Rin's signature defensive technology, an energy shield that absorbs exploitation organism energy waves, visualized as a shimmering hexagonal barrier pattern in pink and blue, becoming a symbol of gender equality at the NeonCrater Palace." },
+  { name: "CowperWave", category: "TECHNOLOGY", prompt: "A specialized vibration wave technology that destroys slime nervous systems, emitted as visible distortion ripples that disrupt bio-organism neural networks, Ayaka Rin's offensive weapon against the Slime Crisis." },
+  { name: "NeurolinkInterface", category: "TECHNOLOGY", prompt: "The foundational brain-computer connection technology enabling consciousness upload to Persephone and the Primary Field, shown as a neural crown with fiber-optic connections merging into a quantum stream." },
+  { name: "QuantumComputingCore", category: "TECHNOLOGY", prompt: "The ultra-powerful quantum processor that powers everything from the Temple of Horizon to economic systems, a massive crystalline processor array suspended in a supercooled chamber." },
+  { name: "CurvatureNavigation", category: "TECHNOLOGY", prompt: "Faster-than-light travel technology using spacetime curvature manipulation, shown as a ship enveloped in a warped space bubble with stars streaking past in curved lines, enabling intergalactic travel through Andromeda and beyond." },
+  { name: "QuantumTeleportation", category: "TECHNOLOGY", prompt: "Instant matter transportation using quantum entanglement, visualized as a person dissolving into particles at one point and reconstituting at another through a quantum tunnel, used for both people and cargo." },
+  { name: "GravityCollapseWarhead", category: "TECHNOLOGY", prompt: "A catastrophic weapon of mass destruction used by Alpha Venom to devastate the Nostalgia Colony, shown as a sphere of impossibly dense matter warping space around it, creating a localized gravitational implosion." },
+  { name: "DimensionWeapon", category: "TECHNOLOGY", prompt: "Weapons systems that exploit dimensional rifts for destructive effect, shown as a cannon projecting tears in the fabric of space-time that consume everything caught within their distortion field." },
+  { name: "DimensionBridge", category: "TECHNOLOGY", prompt: "A permanent interstellar portal evolved from Space Hole technology, a massive stable ring structure with swirling dimensional energy, enabling constant trade and communication across the M104 Galaxy." },
+  { name: "Bioreactor", category: "TECHNOLOGY", prompt: "A bio-engineered energy generation facility on Eros-7 that converts exploitation organism extracted energy into electrical power, massive vats of glowing bio-fluid connected to containment chambers." },
+  { name: "BlackDice", category: "TECHNOLOGY", prompt: "Mysterious glowing black dice carried by certain characters, shown as obsidian cubes with faint violet energy patterns on their surfaces, seemingly magical artifacts with unknown properties." },
+
+  { name: "EsperAbility", category: "TECHNOLOGY", prompt: "Psychic powers awakened through mutation from exploitation organisms, shown as a person surrounded by visible telekinetic energy fields and neural connections reaching out to control objects and read minds." },
+  { name: "TenDimensionHolasm", category: "TECHNOLOGY", prompt: "The ten-dimensional spacetime framework theory proposed by Timur Shah, visualized as an impossibly complex geometric structure of interlocking dimensions, mathematical equations floating in a cosmic void." },
+
+  // ── HISTORY (22) ──
+  { name: "ECalendar", category: "HISTORY", prompt: "The official calendar system established in E1 (AD3501) based on Ea16's rotation period of 44 hours 4 minutes, divided into 10 phases of 32 days each with 4 quarters, shown as an orbital clock with two suns tracking the unique day-night cycle." },
+  { name: "BirdsEmpire", category: "HISTORY", prompt: "The first great empire of E16 (E15–E61) born from military cliques, their banner showing a majestic bird of prey with spread wings over crossed swords, the original authoritarian regime that shaped the system's early power dynamics." },
+  { name: "CeliaGoldenAge", category: "HISTORY", prompt: "A golden era (E335–E370) where Fermi Music and n-token economy reached their peak, visualized as a radiant cityscape bathed in golden light with music notes floating as holographic art, the cultural zenith before Evatron's suppression." },
+  { name: "PaxLombardica", category: "HISTORY", prompt: "A long period of stability and corporate prosperity (E205–E278) under the Lombardia Empire, shown as a peaceful megacity with flowing trade routes and content citizens, a deceptive calm masking deep social inequality." },
+  { name: "SlimeCrisis", category: "HISTORY", prompt: "A catastrophic event (approximately E380–E400) when mutated exploitation organisms went out of control across Gigapolis and Eros-7, shown as a city being consumed by waves of purple slime while warriors fight desperately to contain the outbreak." },
+  { name: "TechCultureRenaissance", category: "HISTORY", prompt: "The technological enlightenment period (E580–E590) where bioengineering and dimension technology exploded, shown as brilliant scientists working amid holographic equations and bio-luminescent experiments, birthing the Dimension Horizon and techno-religion." },
+  { name: "EltonaWar", category: "HISTORY", prompt: "The first great racial conflict (E14) between frontier consciousness and primitive consciousness among the immigrant populations, shown as a divided city with two factions clashing, the origin of ethnic tensions in the E16 system." },
+  { name: "AfterWar", category: "HISTORY", prompt: "A devastating conflict following the Eltona War period, showing a war-torn landscape with ruined cities and displaced populations, ultimately leading to the establishment of the Teran Republic." },
+  { name: "ChongkwonWar", category: "HISTORY", prompt: "Another destructive conflict that contributed to the fall of early power structures, shown as massive armies clashing with early energy weapons across a devastated frontier landscape." },
+  { name: "TeranRepublic", category: "HISTORY", prompt: "A republican governance system that emerged from the ashes of early wars (E62–E77), its banner showing a democratic council chamber with representatives of the three founding peoples." },
+  { name: "LombardiaWar", category: "HISTORY", prompt: "A major conflict (E588–E598) that reshaped the political landscape, shown as vast fleet battles in space and massive ground campaigns across multiple continents." },
+  { name: "MerdiaWar", category: "HISTORY", prompt: "An interstellar resource war (E275–E288) between the Lombardia Empire and the Sextas Union over rare earth mining rights, shown as massive space fleets engaging over asteroid mining facilities." },
+  { name: "MaastrichtRevolution", category: "HISTORY", prompt: "The pivotal revolution (E150) led by El Forhaus that overthrew the aristocracy and established the Corporatumpublica, shown as citizens storming the Central Tower while the revolutionary flag of freedom flies." },
+  { name: "KwannaraRevolution", category: "HISTORY", prompt: "A decentralization revolution (E108–E114) that restored Clan rights and regional autonomy against centralized corporate control, shown as diverse communities celebrating while corporate towers crumble in the background." },
+  { name: "NewHelsinkiDeclaration", category: "HISTORY", prompt: "A historic proclamation (E151) at the Neon Colosseum proposing a unified planetary federation, shown as leaders signing a glowing holographic document under spotlights while crowds cheer." },
+  { name: "ColaPlague", category: "HISTORY", prompt: "A devastating pandemic (E208) from an Andromeda-origin virus that killed 45 million people, hitting lower-caste citizens hardest, shown as a dark plague spreading through underground districts while elites watch from above behind bio-barriers." },
+  { name: "ApolonDominionWar", category: "HISTORY", prompt: "A devastating interplanetary war (E370–E524) that reshaped the entire E16 system, shown as massive fleet battles between planet orbits, cities in ruins, and the signing of the World Federal Summit at E524." },
+  { name: "TerianRebellion", category: "HISTORY", prompt: "The resistance movement led by Erios Wald carrying Seria's legacy against Evatron, shown as a lone rebel standing defiantly before an execution squad in a public square, the spark that kept resistance alive." },
+  { name: "TechEnlightenmentAge", category: "HISTORY", prompt: "The same era as the Tech Culture Renaissance (E580–E590), a period of explosive technological and cultural development, shown as a fusion of science laboratories and artistic studios producing revolutionary breakthroughs." },
+  { name: "TechnoReligion", category: "HISTORY", prompt: "A spiritual movement that worshipped the Dimension Horizon as 'the will of the cosmos,' shown as robed followers meditating in the Temple of Horizon while their consciousness streams into higher dimensional light." },
+  { name: "E6FirstProsperity", category: "HISTORY", prompt: "The earliest era of economic expansion and city-building (E6 era) when the initial city circles including Paraton were established, shown as a bustling frontier settlement with construction cranes and hopeful colonists building the first urban foundations." },
+  { name: "WorldFederalSummit", category: "HISTORY", prompt: "The historic peace conference at E524 that ended the Apolon Dominion War and established the framework for galactic governance, shown as leaders from across the E16 system seated around a circular table signing a luminous treaty document." },
+
+  // ── TERMINOLOGY (16) ──
+  { name: "NameInheritance", category: "TERMINOLOGY", prompt: "The cultural practice of passing down names, titles, and legacies across generations in E16 society, shown as a chain of portraits from ancestor to descendant, each face carrying the weight and honor of their inherited name." },
+  { name: "WarriorDecisionBattle", category: "TERMINOLOGY", prompt: "The legendary combat tournament at the Neon Colosseum where low-caste warriors fight with nano-armor and plasma blades to climb the A-Registry hierarchy, shown as two armored fighters clashing in a neon-lit arena with a roaring crowd." },
+  { name: "ZimaOil", category: "TERMINOLOGY", prompt: "A valuable resource or substance in the E16 universe, shown as iridescent dark liquid flowing from extraction facilities, a critical economic commodity powering industries and technologies across the star system." },
+  { name: "FermiMusic", category: "TERMINOLOGY", prompt: "A revolutionary musical art form that emerged during the Tech Enlightenment, blending technology and art into immersive sensory experiences, shown as holographic musical notes creating visible sound waves in a concert dome." },
+  { name: "PsychedelicCosmology", category: "TERMINOLOGY", prompt: "The philosophical framework proposed by Temirtaron combining physics and mysticism, visualized as a human mind expanding into multiple colorful dimensions simultaneously, perceiving the cosmic structure of reality." },
+  { name: "LoveMark", category: "TERMINOLOGY", prompt: "A mysterious symbol or phenomenon related to romantic connections in the E16 universe, shown as a glowing mark on skin that pulses with warmth when two bonded individuals are near each other." },
+  { name: "SpermRegistry", category: "TERMINOLOGY", prompt: "A heavily guarded genetic database on Eros-7 managed exclusively by the Matrical Council, shown as a massive crystalline server bank with quantum-encrypted DNA profiles, controlling male reproduction rights." },
+  { name: "ThucydidesTrap", category: "TERMINOLOGY", prompt: "A geopolitical theory applied to the E16 system describing how rising powers inevitably conflict with established ones, shown as two massive nations on a collision course like tectonic plates." },
+  { name: "Fendranese", category: "TERMINOLOGY", prompt: "The Nordic-heritage technology-focused ethnic group among the founding immigrants, shown as tall fair-haired people in advanced environmental suits working on dimensional technology." },
+  { name: "Archean", category: "TERMINOLOGY", prompt: "The Asian-heritage environmentally adaptive ethnic group among the founding immigrants, shown as skilled bioengineers cultivating modified ecosystems in bio-domes with traditional cultural elements." },
+  { name: "Polonpolo", category: "TERMINOLOGY", prompt: "The Oceanic-heritage culture-preserving ethnic group among the founding immigrants, shown as people maintaining traditional music, art, and oral history alongside holographic recording technology." },
+  { name: "IrisWorlds", category: "TERMINOLOGY", prompt: "The interconnected operational territories and intelligence networks managed by Iris and her team across the E16 system, shown as a web of connected nodes spanning continents with intelligence data flowing between them." },
+  { name: "NTokenEconomy", category: "TERMINOLOGY", prompt: "The quantum-encrypted interstellar economic system powered by n-tokens, visualized as a vast network of glowing hexagonal transactions connecting planets, stations, and corporate towers across the M104 Galaxy." },
+  { name: "SigmaProtocol", category: "TERMINOLOGY", prompt: "The classified set of mind-control and bioengineering procedures originally developed by the Sigma Unit, shown as a dark technical manual with pages displaying neural diagrams and chemical formulas wrapped in warning symbols." },
+  { name: "NeoCraterAccord", category: "TERMINOLOGY", prompt: "The historic agreement signed at the NeonCrater Palace that marked the first formal recognition of male rights on Eros-7, shown as a luminous treaty document being signed by female and male leaders together under crystal light." },
+  { name: "CrescentPowerIndex", category: "TERMINOLOGY", prompt: "A geopolitical metric measuring the relative military, economic, and political strength of nations within the Crescent Region, shown as an intricate radar chart with overlapping colored zones representing each nation's power projection." }
+];
+
+const grid = document.getElementById('cardGrid');
+const searchInput = document.getElementById('searchInput');
+const countInfo = document.getElementById('countInfo');
+const toast = document.getElementById('toast');
+let activeFilter = 'ALL';
+
+function renderCards() {
+  grid.innerHTML = '';
+  worldItems.forEach((item, index) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.name = item.name.toLowerCase();
+    card.dataset.category = item.category;
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="card-header-left">
+          <h2>${item.name}</h2>
+          <span class="cat-tag ${item.category}">${item.category}</span>
+        </div>
+        <button class="copy-btn" data-index="${index}">Copy</button>
+      </div>
+      <div class="card-body">
+        <div class="prompt-text" data-index="${index}">${item.prompt}</div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => copyPrompt(btn.dataset.index, btn));
+  });
+  document.querySelectorAll('.prompt-text').forEach(el => {
+    el.addEventListener('click', () => copyPrompt(el.dataset.index));
+  });
+}
+
+function applyFilters() {
+  const query = searchInput.value.toLowerCase().trim();
+  const cards = document.querySelectorAll('.card');
+  let count = 0;
+  cards.forEach(card => {
+    const name = card.dataset.name;
+    const category = card.dataset.category;
+    const prompt = card.querySelector('.prompt-text').textContent.toLowerCase();
+    const matchSearch = !query || name.includes(query) || prompt.includes(query);
+    const matchCategory = activeFilter === 'ALL' || category === activeFilter;
+    if (matchSearch && matchCategory) {
+      card.classList.remove('hidden');
+      count++;
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+  countInfo.textContent = `${count} / ${worldItems.length} items`;
+}
+
+function copyPrompt(index, btnElement) {
+  const text = worldItems[index].prompt;
+  const name = worldItems[index].name;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast(`Copied: ${name}`);
+    if (btnElement) {
+      btnElement.textContent = 'Copied!';
+      btnElement.classList.add('copied');
+      setTimeout(() => {
+        btnElement.textContent = 'Copy';
+        btnElement.classList.remove('copied');
+      }, 2000);
+    }
+  });
+}
+
+function copyAllVisible() {
+  const visibleCards = document.querySelectorAll('.card:not(.hidden)');
+  const texts = [];
+  visibleCards.forEach(card => {
+    const idx = parseInt(card.querySelector('.copy-btn').dataset.index);
+    texts.push(`## ${worldItems[idx].name} [${worldItems[idx].category}]\n${worldItems[idx].prompt}`);
+  });
+  navigator.clipboard.writeText(texts.join('\n\n')).then(() => {
+    showToast(`Copied ${visibleCards.length} prompts!`);
+  });
+}
+
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+searchInput.addEventListener('input', applyFilters);
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.g;
+    applyFilters();
+  });
+});
+
+document.getElementById('copyAllBtn').addEventListener('click', copyAllVisible);
+
+renderCards();
+</script>
+</body>
+</html>
